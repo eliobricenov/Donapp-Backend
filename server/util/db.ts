@@ -7,8 +7,9 @@ import { IExtensions } from '../repository';
 const config = {
     host: 'localhost',
     port: 5432,
-    database: 'pg-promise-demo',
-    user: 'postgres'
+    database: 'tesis',
+    user: 'postgres',
+    password: '1234'
 };
 
 

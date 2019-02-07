@@ -12,6 +12,7 @@ export class UserRepository implements Repository<User> {
     findOne(id: string): Promise<User> {
         return pgp.one(userQueries.findOne, { id });
     }
+
     create(data: User): Promise<User> {
         const id = 'UUID';
         data.id = id;
@@ -20,11 +21,23 @@ export class UserRepository implements Repository<User> {
             return pgp.one(userQueries.findOne, { id })
         });
     }
+
     edit(id: string, data: User): Promise<User> {
         throw new Error("Method not implemented.");
     }
+
     delete(id: string): Promise<User> {
         throw new Error("Method not implemented.");
+    }
+
+    async usernameExists(username: string): Promise<boolean> {
+        const { count } = await pgp.one(userQueries.searchUsername, { username });
+        return count > 0;
+    }
+
+    async emailExists(email: string): Promise<boolean> {
+        const { count } = await pgp.one(userQueries.searchEmail, { email });
+        return count > 0;
     }
 
 

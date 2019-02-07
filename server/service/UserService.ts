@@ -19,4 +19,12 @@ export class UserService {
     create(data: User) {
         console.log(data);
     }
+
+    usernameExists(username: string): Promise<boolean> {
+        return this.userRepository.usernameExists(username);
+    }
+
+    emailExists(email: string): Promise<boolean> {
+        return this.userRepository.emailExists(email);
+    }
 }

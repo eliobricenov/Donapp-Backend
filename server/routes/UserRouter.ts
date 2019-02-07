@@ -1,11 +1,15 @@
 import { Request, Response, Router, NextFunction } from "express";
 import { UserService } from "../service/UserService";
 import { User } from "../model/User";
+import { createUserMiddleware, loginMiddleware } from "../middlewares/userMiddleware";
+import { upload } from "../middlewares/multer";
+
 
 /**
  * User router that handles all request related to users
+ * @todo delete getAll() endpoint once it is not used anymore, it is not safe
  */
-export class UserRouter {
+class UserRouter {
 
     router: Router;
     userService: UserService;
@@ -17,17 +21,20 @@ export class UserRouter {
     }
 
     /**
-     * Setup of all the endpoints of this router
+     * Setup of all the endpoints of the router
      */
     config(): void {
         this.router.get('/', this.getAllUsers);
         this.router.get('/id/:id', this.getOneUser)
-        this.router.post('/', this.createUser);
+        this.router.post('/', createUserMiddleware, this.createUser);
+        this.router.post('/login', loginMiddleware, this.createUser);
+        this.router.get('/username/:username', this.usernameExists, this.usernameExists);
+        this.router.get('/email/:email', this.emailExists, this.usernameExists);
         this.router.put('/id/:id', this.updateUser);
         this.router.delete('/id/:id', this.deleteUser);
     }
 
-    async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const users: User[] = await this.userService.findAll();
             res.json({ status: 200, data: users });
@@ -36,23 +43,55 @@ export class UserRouter {
         }
     }
 
-    async getOneUser(req: Request, res: Response): Promise<void> {
+    login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            res.sendStatus(200);
+        } catch (error) {
+            console.log('ERROR');
+            next(error);
+        }
+    }
+
+    usernameExists = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { username } = req.params;
+            const status: number = await this.userService.usernameExists(username) ? 200 : 409;
+            res.status(status).json({ status });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    emailExists = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { email } = req.params;
+            const status = await this.userService.emailExists(email) ? 200 : 409;
+            res.status(status).json({ status });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    getOneUser = async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const user: User = await this.userService.findOne(id);
         res.json({ status: 200, data: user });
     }
 
-    async createUser(req: Request, res: Response): Promise<void> {
-        const data: User = <User>req.body;
-        throw new Error("Method not implemented.");
+    createUser = async (req: Request, res: Response): Promise<void> => {
+        const { file } = req;
+        console.log(file);
+        res.sendStatus(200);
     }
 
-    async updateUser(req: Request, res: Response): Promise<void> {
+    updateUser = async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         throw new Error("Method not implemented.");
     }
 
-    async deleteUser(req: Request, res: Response): Promise<void> {
+    deleteUser = async (req: Request, res: Response): Promise<void> => {
         throw new Error("Method not implemented.");
     }
 }
+
+export default new UserRouter().router;
