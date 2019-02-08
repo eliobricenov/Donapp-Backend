@@ -1,36 +1,16 @@
 import { sign, verify, VerifyErrors } from 'jsonwebtoken';
+import { Token } from '../util/helper/Token';
+import * as crypto from 'crypto';
 
 export class TokenService {
 
     private static SECRET = 'Chikilukis';
 
-    static generate(token: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            sign({ token }, this.SECRET, (err: Error, token: string) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(token);
-                }
-            })
-        });
+    static generateWithUserId(userId: string): Token {
+        const key = crypto.createCipher('aes-128-cbc', this.SECRET);
+        const token = key.update(userId, 'utf8', 'hex');
+        const createdAt: string = Date.now().toString();
+        return { userId, token, createdAt }
     }
 
-    static decode(token: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            verify(token, this.SECRET, (err: VerifyErrors, decoded: string | object) => {
-                if (err) {
-                    console.log(err);
-                    reject({
-                        status: 403,
-                        errors: [{
-                            message: 'Invalid Token'
-                        }]
-                    });
-                } else {
-                    resolve(<string> decoded);
-                }
-            })
-        });
-    }
 }

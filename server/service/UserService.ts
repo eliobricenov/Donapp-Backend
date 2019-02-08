@@ -3,7 +3,7 @@ import { User } from "../model/User";
 
 export class UserService {
     private userRepository: UserRepository;
-    
+
     constructor() {
         this.userRepository = new UserRepository();
     }
@@ -16,8 +16,8 @@ export class UserService {
         return this.userRepository.findOne(id);
     }
 
-    create(data: User) {
-        console.log(data);
+    async create(data: User): Promise<User> {
+        return await this.userRepository.create(data);
     }
 
     usernameExists(username: string): Promise<boolean> {
@@ -26,5 +26,9 @@ export class UserService {
 
     emailExists(email: string): Promise<boolean> {
         return this.userRepository.emailExists(email);
+    }
+
+    private async sendConfirmationEmail(userId: string) {
+        
     }
 }

@@ -45,7 +45,7 @@ class UserRouter {
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            res.sendStatus(200);
+            res.send(200);
         } catch (error) {
             console.log('ERROR');
             next(error);
@@ -54,6 +54,7 @@ class UserRouter {
 
     usernameExists = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
+            console.log(req.headers.host);
             const { username } = req.params;
             const status: number = await this.userService.usernameExists(username) ? 200 : 409;
             res.status(status).json({ status });
@@ -78,10 +79,14 @@ class UserRouter {
         res.json({ status: 200, data: user });
     }
 
-    createUser = async (req: Request, res: Response): Promise<void> => {
-        const { file } = req;
-        console.log(file);
-        res.sendStatus(200);
+    createUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const data = req.body;
+            const response = await this.userService.create(data);
+            res.status(200).json({ status: 200, data: response });
+        } catch (error) {
+            next(error);
+        }
     }
 
     updateUser = async (req: Request, res: Response): Promise<void> => {
