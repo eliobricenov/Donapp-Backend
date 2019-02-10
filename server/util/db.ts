@@ -9,7 +9,13 @@ const config = {
     port: 5432,
     database: 'tesis',
     user: 'postgres',
-    password: '1234'
+    password: '1234',
+    query: function (e: any) {
+        console.log('QUERY:', e.query);
+        if (e.params) {
+            console.log('PARAMS:', e.params);
+        }
+    }
 };
 
 

@@ -8,3 +8,7 @@ var PORT = process.env.port || 3000;
 server_1.default.listen(PORT, function () {
     console.log("Express server listening on port " + PORT);
 });
+//pruebas
+var moment = require("moment");
+console.log(new Date().getTime());
+console.log(moment('2015-01-01', 'YYYY-MM-DD').toDate().getTime());

@@ -27,6 +27,7 @@ class Server {
     private setUpErrorMiddlewares(): void {
         this.app.use(errorMiddleware);
     }
+
 }
 
 export default new Server().app;

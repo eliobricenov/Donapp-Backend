@@ -28,8 +28,9 @@ class UserRouter {
         this.router.get('/id/:id', this.getOneUser)
         this.router.post('/', createUserMiddleware, this.createUser);
         this.router.post('/login', loginMiddleware, this.createUser);
-        this.router.get('/username/:username', this.usernameExists, this.usernameExists);
-        this.router.get('/email/:email', this.emailExists, this.usernameExists);
+        this.router.post('/confirmationEmail/:token', this.activateUser);
+        this.router.get('/username/:username', this.usernameExists);
+        this.router.get('/email/:email', this.emailExists);
         this.router.put('/id/:id', this.updateUser);
         this.router.delete('/id/:id', this.deleteUser);
     }
@@ -54,7 +55,6 @@ class UserRouter {
 
     usernameExists = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            console.log(req.headers.host);
             const { username } = req.params;
             const status: number = await this.userService.usernameExists(username) ? 200 : 409;
             res.status(status).json({ status });
@@ -73,6 +73,17 @@ class UserRouter {
         }
     }
 
+    activateUser = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { token } = req.params;
+            await this.userService.activateUser(token);
+            const status = 200;
+            res.status(200).json({ status });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     getOneUser = async (req: Request, res: Response): Promise<void> => {
         const { id } = req.params;
         const user: User = await this.userService.findOne(id);
@@ -82,7 +93,8 @@ class UserRouter {
     createUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const data = req.body;
-            const response = await this.userService.create(data);
+            const { host } = req.headers;
+            const response = await this.userService.create(data, host || 'localhost');
             res.status(200).json({ status: 200, data: response });
         } catch (error) {
             next(error);

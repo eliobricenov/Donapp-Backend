@@ -5,9 +5,11 @@ import { User } from "../model/User";
 import pgp from "../util/db";
 import { userQueries } from "../util/sql/queries";
 import { Token } from '../util/helper/Token';
-import  moment = require('moment');
+import moment = require('moment');
 
 export class UserRepository implements Repository<User> {
+
+    static STATUS = { ACTIVE: 1, INACTIVE: 2 };
 
     findAll(): Promise<User[]> {
         return pgp.any(userQueries.findAll);
@@ -18,13 +20,11 @@ export class UserRepository implements Repository<User> {
     }
 
     async create(data: User): Promise<User> {
-        const uuid = v4();
-        data.id = uuid;
-        const {id, username, email, password } = data;
+        const id = v4();
+        const { username, email, password } = data;
         const createdAt = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
-        console.log(createdAt);
-        await pgp.none(userQueries.createUserV1, {id, username, email, password, createdAt});
-        return {id, username, email, password, createdAt}
+        await pgp.none(userQueries.createUserV1, { id, username, email, password, createdAt });
+        return { id, username, email, password, createdAt }
 
     }
 
@@ -46,17 +46,24 @@ export class UserRepository implements Repository<User> {
         return count > 0;
     }
 
-    async createEmailConfirmationToken(userId: string): Promise<Token> {
-        let expireDate = new Date();
-        expireDate.setDate(expireDate.getDate() + 1)
-        const expiresIn = expireDate.toDateString();
-        const id = v4().toString();
-        await pgp.none(userQueries.createEmailConfirmation, { id, userId, expiresIn });
-        return { id, userId, expiresIn };
+    async createEmailConfirmationToken(_token: Token): Promise<void> {
+        const { id, userId, token, expiresIn } = _token;
+        await pgp.none(userQueries.createEmailConfirmation, { id, userId, expiresIn, token });
     }
 
-    deleteEmailConfirmationToken(id: string): Promise<null> {
-        return pgp.none(userQueries.deleteEmailConfirmation);
+    async deleteEmailConfirmationToken(id: string): Promise<void> {
+        await pgp.none(userQueries.deleteEmailConfirmation, { id });
+        console.log(`Deleted email token with id ${id}`);
+    }
+
+    async changeUserStatus(userId: string, status: number): Promise<void> {
+        await pgp.none(userQueries.updateUserStatus, { userId, status });
+        console.log(`Changed ${userId} to ${status}`);
+    }
+
+    async findUserByConfirmationToken(token: string): Promise<User> {
+        const user: User = await pgp.one(userQueries.findUserByConfirmationToken, { token });
+        return user;
     }
 
 
