@@ -7,6 +7,7 @@ import { userQueries } from "../util/sql/queries";
 import { Token } from '../util/helper/Token';
 import moment = require('moment');
 import db = require('../util/db');
+import { SecurityQuestion } from '../model/SecurityQuestion';
 
 
 export class UserRepository implements Repository<User> {
@@ -75,6 +76,17 @@ export class UserRepository implements Repository<User> {
         const token = await pgp.oneOrNone(userQueries.findConfirmationToken, { content });
         console.log(token);
         return token;
+    }
+
+    async setSecurityQuestions(userId: string, questions: any[]) {
+        db.tx(async tx => {
+            questions.forEach(async _question => {
+                const { name, answer } = _question;
+                const { id: questionId }: SecurityQuestion = await tx.one(userQueries.findSecurityQuestionByName, { name });
+                const id = v4();
+                await tx.none(userQueries.createSecurityAnswer, { id, userId, questionId, answer });
+            })
+        })
     }
 
 }
