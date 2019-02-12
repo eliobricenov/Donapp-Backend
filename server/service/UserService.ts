@@ -1,9 +1,7 @@
 import { UserRepository } from "../repository";
 import { User } from "../model/User";
 import { MailService } from "./MailService";
-import { Token } from "../util/helper/Token";
 import { TokenService } from "./TokenService";
-import { CannotSendEmailException } from "../util/exceptions/CannotSendEmailException";
 import { TokenNotValidException } from "../util/exceptions/TokenNotValidException";
 
 export class UserService {
@@ -35,11 +33,12 @@ export class UserService {
         return this.userRepository.emailExists(email);
     }
 
-    async activateUser(token: string): Promise<void> {
-        const { id } = await this.userRepository.findUserByConfirmationToken(token);
-        if (id) {
-            await this.userRepository.changeUserStatus(id, UserRepository.STATUS.ACTIVE);
-            await this.userRepository.deleteEmailConfirmationToken(id);
+    async activateUser(_token: string): Promise<void> {
+        const token = await this.userRepository.findUserByConfirmationToken(_token);
+        if (token) {
+            await this.userRepository.changeUserStatus(token.id, UserRepository.STATUS.ACTIVE);
+            const { id: tokenId } = await this.userRepository.findConfirmationTokenByContent(token.id);
+            await this.userRepository.deleteEmailConfirmationToken(tokenId);
         } else {
             throw new TokenNotValidException();
         }
@@ -50,7 +49,7 @@ export class UserService {
         await this.userRepository.createEmailConfirmationToken(token);
         try {
             await MailService.sendConfirmationEmail(email, token, host);
-        } catch(error) {
+        } catch (error) {
             await this.userRepository.deleteEmailConfirmationToken(token.id);
             throw error;
         }

@@ -8,7 +8,3 @@ app.listen(PORT, () => {
 
 //pruebas
 
-import moment = require('moment');
-
-console.log(new Date().getTime());
-console.log(moment('2015-01-01', 'YYYY-MM-DD').toDate().getTime())

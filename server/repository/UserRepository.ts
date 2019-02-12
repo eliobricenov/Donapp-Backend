@@ -6,17 +6,21 @@ import pgp from "../util/db";
 import { userQueries } from "../util/sql/queries";
 import { Token } from '../util/helper/Token';
 import moment = require('moment');
+import db = require('../util/db');
+
 
 export class UserRepository implements Repository<User> {
 
     static STATUS = { ACTIVE: 1, INACTIVE: 2 };
 
-    findAll(): Promise<User[]> {
-        return pgp.any(userQueries.findAll);
+    async findAll(): Promise<User[]> {
+        const users = await pgp.manyOrNone(userQueries.findAll);
+        return users;
     }
 
-    findOne(id: string): Promise<User> {
-        return pgp.one(userQueries.findOne, { id });
+    async findOne(id: string): Promise<User> {
+        const user = await pgp.oneOrNone(userQueries.findOne, { id });
+        return user;
     }
 
     async create(data: User): Promise<User> {
@@ -62,9 +66,15 @@ export class UserRepository implements Repository<User> {
     }
 
     async findUserByConfirmationToken(token: string): Promise<User> {
-        const user: User = await pgp.one(userQueries.findUserByConfirmationToken, { token });
+        const user = await pgp.oneOrNone(userQueries.findUserByConfirmationToken, { token });
         return user;
     }
 
+    async findConfirmationTokenByContent(content: string): Promise<Token> {
+        console.log(content);
+        const token = await pgp.oneOrNone(userQueries.findConfirmationToken, { content });
+        console.log(token);
+        return token;
+    }
 
 }
