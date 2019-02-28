@@ -10,7 +10,7 @@ const UPLOAD_PATH = path.join(__dirname, '../../../', 'server/public/uploads');
 
 // Middleware that filters file upload
 const imageAndMediaFilter = (req: Request, file: Express.Multer.File, cb: Function) => {
-    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|mp4)$/)) {
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|mp4|pdf)$/)) {
         return cb(new HttpException(400, 'Only images and media files are allowed'));
     }
     cb(null, true);
@@ -18,7 +18,7 @@ const imageAndMediaFilter = (req: Request, file: Express.Multer.File, cb: Functi
 
 const fileNameFilter = (req: Request, file: Express.Multer.File, cb: Function) => {
     const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + Date.now() + '.' + ext)
+    cb(null, file.fieldname + '-' + Date.now() + ext)
 }
 
 const diskStorage = multer.diskStorage({destination: UPLOAD_PATH,  filename: fileNameFilter})

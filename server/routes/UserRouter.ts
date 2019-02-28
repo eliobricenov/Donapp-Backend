@@ -1,8 +1,8 @@
 import { Request, Response, Router, NextFunction } from "express";
 import { UserService } from "../service/UserService";
 import { User } from "../model/User";
-import { createUserMiddleware, loginMiddleware } from "../middlewares/userMiddleware";
-import { upload } from "../middlewares/multer";
+import { createUserMiddleware, loginMiddleware, imageTest } from "../middlewares/userMiddleware";
+import { getToken } from "../middlewares/jwt";
 
 
 /**
@@ -27,12 +27,20 @@ class UserRouter {
         this.router.get('/', this.getAllUsers);
         this.router.get('/id/:id', this.getOneUser)
         this.router.post('/', createUserMiddleware, this.createUser);
-        this.router.post('/login', loginMiddleware, this.createUser);
+        this.router.post('/login', loginMiddleware, this.login);
+        this.router.post('/token/refresh', this.refreshToken);
+        this.router.post('/logout', this.logout);
         this.router.post('/confirmationEmail/:token', this.activateUser);
         this.router.get('/username/:username', this.usernameExists);
         this.router.get('/email/:email', this.emailExists);
         this.router.put('/id/:id', this.updateUser);
         this.router.delete('/id/:id', this.deleteUser);
+        this.router.post('/testLogin', getToken, this.testLogin);
+
+
+
+
+        this.router.post('/image', imageTest, this.testImage);
     }
 
     getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -45,10 +53,31 @@ class UserRouter {
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const { username, password } = req.body;
         try {
-            res.send(200);
+            const [token, refreshToken] = await this.userService.doLogIn(username, password);
+            res.status(200).json({ status: 200, token, refreshToken });
         } catch (error) {
-            console.log('ERROR');
+            next(error);
+        }
+    }
+
+    refreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const { token, refreshToken } = req.body;
+        try {
+            const newToken = await this.userService.refreshToken(token, refreshToken);
+            res.status(200).json({ status: 200, newToken, refreshToken });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { token } = req.body;
+            await this.userService.doLogOut(token);
+            res.status(200).json({ status: 200 });
+        } catch (error) {
             next(error);
         }
     }
@@ -56,7 +85,7 @@ class UserRouter {
     usernameExists = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { username } = req.params;
-            const status: number = await this.userService.usernameExists(username) ? 200 : 409;
+            const status: number = await this.userService.usernameExists(username) ? 409 : 200;
             res.status(status).json({ status });
         } catch (error) {
             next(error);
@@ -66,7 +95,7 @@ class UserRouter {
     emailExists = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email } = req.params;
-            const status = await this.userService.emailExists(email) ? 200 : 409;
+            const status: number = await this.userService.emailExists(email) ? 409 : 200;
             res.status(status).json({ status });
         } catch (error) {
             next(error);
@@ -76,6 +105,7 @@ class UserRouter {
     activateUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { token } = req.params;
+            console.log(token);
             await this.userService.activateUser(token);
             const status = 200;
             res.status(200).json({ status });
@@ -93,8 +123,7 @@ class UserRouter {
     createUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const data = req.body;
-            const { host } = req.headers;
-            const response = await this.userService.create(data, host || 'localhost');
+            const response = await this.userService.create(data);
             res.status(200).json({ status: 200, data: response });
         } catch (error) {
             next(error);
@@ -108,6 +137,15 @@ class UserRouter {
 
     deleteUser = async (req: Request, res: Response): Promise<void> => {
         throw new Error("Method not implemented.");
+    }
+
+    testLogin = async (req: Request, res: Response): Promise<void> => {
+        res.json({ status: 200 });
+    }
+
+    testImage = async (req: Request, res: Response): Promise<void> => {
+        console.log(req.file);
+        res.json({ status: 200 });
     }
 }
 

@@ -48,6 +48,7 @@ const getAvatar = upload.single('avatar');
 
 const createUserMiddleware: RequestHandler[] = [getAvatar, createUserValidation, validate];
 const loginMiddleware: RequestHandler[] = [loginValidation, validate];
+const imageTest = [getAvatar];
 
 
-export { createUserMiddleware, loginMiddleware, createUserValidation, userExistsValidation, emailExistsValidation };
+export { createUserMiddleware, loginMiddleware, createUserValidation, userExistsValidation, emailExistsValidation, imageTest };

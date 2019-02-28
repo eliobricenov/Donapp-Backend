@@ -1,7 +1,8 @@
-import express = require('express');
 import * as bodyParser from 'body-parser';
-import IndexRouter from './routes/IndexRouter';
+import cors from 'cors';import express from 'express';
 import { errorMiddleware } from './middlewares/errorMiddleware';
+import IndexRouter from './routes/IndexRouter';
+
 
 class Server {
     public app: express.Application;
@@ -14,6 +15,7 @@ class Server {
     }
 
     private setUpMiddlewares(): void {
+        this.app.use(cors({credentials: true, origin: `http://192.168.1.${7}:8100` || 'http://localhost:8100'}));
         // support application/json
         this.app.use(bodyParser.json());
         //support application/x-www-form-urlencoded post data

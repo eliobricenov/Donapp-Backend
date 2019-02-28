@@ -1,6 +1,7 @@
 const userQueries = {
     findAll: 'SELECT * FROM user',
     findOne: 'SELECT * FROM user WHERE pk = ${id}',
+    findUserByUsername: 'SELECT person_pk as "id", name, last_name, email, password, enterprise_name, username, phone, created_at, person_pk_type_fk as "type", person_pk_condition_status_fk as "condition" FROM person WHERE username = ${username};',
     searchUsername: 'SELECT count(person_pk) FROM person WHERE username = ${username}',
     searchEmail: 'SELECT count(person_pk) FROM person WHERE email = ${email}',
     createEmailConfirmation: 'INSERT INTO account_confirmation_email (password_change_request_pk, person_fk, expires_in, token) VALUES (${id}, ${userId}, ${expiresIn}, ${token})',

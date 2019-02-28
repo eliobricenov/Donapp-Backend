@@ -1,7 +1,8 @@
 // Loading and initializing pg-promise:
-import pgPromise = require('pg-promise');
+import pgPromise from 'pg-promise';
 import { IMain, IDatabase } from 'pg-promise';
 import { IExtensions } from '../repository';
+import monitor from 'pg-monitor';
 
 // Database connection parameters:
 const config = {
@@ -9,15 +10,10 @@ const config = {
     port: 5432,
     database: 'tesis',
     user: 'postgres',
-    password: '1234',
-    query: function (e: any) {
-        console.log('QUERY:', e.query);
-        if (e.params) {
-            console.log('PARAMS:', e.params);
-        }
-    }
+    password: '1234'
 };
 
+monitor.attach(config);
 
 const pgp: IMain = pgPromise();
 
