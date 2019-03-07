@@ -6,7 +6,6 @@ import { TokenNotValidException } from "../util/exceptions/TokenNotValidExceptio
 import { UserNotFoundException } from "../util/exceptions/UserNotFoundException";
 import { InvalidCredentialsException } from "../util/exceptions/InvalidCredentialsException";
 import { JwtTokenService } from "./JwtTokenService";
-import { redisClientAsync } from "../util/redis";
 
 /**
  * @todo Change transactional methods to repository
@@ -23,8 +22,9 @@ export class UserService {
         return this.userRepository.findAll();
     }
 
-    findOne(id: string): Promise<User> {
-        return this.userRepository.findOne(id);
+    async findOne(token: string): Promise<User> {
+        const { data } = await JwtTokenService.decode(token);
+        return this.userRepository.findOne(data.id);
     }
 
     async checkUserCredentials(username: string, password: string): Promise<boolean> {
@@ -74,7 +74,7 @@ export class UserService {
         const valid = await this.checkUserCredentials(username, password);
         if (valid) {
             const user = await this.userRepository.findByUsername(username);
-            const token = await JwtTokenService.generateToken({id: user.id});
+            const token = await JwtTokenService.generateToken({ id: user.id });
             const refreshToken = await JwtTokenService.generateRefreshToken(token);
             return [token, refreshToken];
         } else {
@@ -88,5 +88,11 @@ export class UserService {
 
     async refreshToken(token: string, refreshToken: string) {
         return JwtTokenService.refreshToken(token, refreshToken);
+    }
+
+    async edit(user: User, token: string, file: Express.Multer.File) {
+        const { data } = await JwtTokenService.decode(token);
+        user.id = data.id;
+        return this.userRepository.edit(user, file);
     }
 }

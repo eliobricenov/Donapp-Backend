@@ -1,6 +1,5 @@
 import { v4 } from 'uuid';
 
-import { Repository } from "./Repository";
 import { User } from "../model/User";
 import pgp from "../util/db";
 import { userQueries } from "../util/sql/queries";
@@ -9,7 +8,7 @@ import moment = require('moment');
 import db = require('../util/db');
 
 
-export class UserRepository implements Repository<User> {
+export class UserRepository {
 
     private STATUS = { ACTIVE: 1, INACTIVE: 2 };
 
@@ -37,8 +36,19 @@ export class UserRepository implements Repository<User> {
         return user;
     }
 
-    edit(id: string, data: User): Promise<User> {
-        throw new Error("Method not implemented.");
+    async edit(data: User, file: Express.Multer.File): Promise<{}> {
+        const updatedUser = await pgp.tx(async tx => {
+            const { id, name, lastName } = data;
+            const avatarId = v4();
+            const createdAt = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
+            const avatarPath = file.path;
+            const avatarName = file.filename;
+            const url = `uploads/${avatarName}`;
+            await tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url});
+            await tx.func('usp_update_user', [id, name, lastName, avatarId]);
+            return { name, lastName, url }
+        })
+        return updatedUser;
     }
 
     delete(id: string): Promise<User> {

@@ -2,6 +2,7 @@ import { sign, verify, TokenExpiredError } from 'jsonwebtoken';
 import { HttpException } from '../util/exceptions/HttpException';
 import { redisClient, redisClientAsync } from '../util/redis';
 import { JwtToken } from '../util/helper/JwtToken';
+import { reject } from 'bluebird';
 
 export class JwtTokenService {
 
@@ -31,9 +32,9 @@ export class JwtTokenService {
             } catch (err) {
                 switch (err) {
                     case err instanceof TokenExpiredError:
-                        throw new HttpException(403, 'Expired Token')
+                        reject(new HttpException(403, 'Expired Token'))
                     default:
-                        throw new HttpException(403, 'Invalid Token')
+                        reject(new HttpException(403, 'Invalid Token'))
                 }
             }
         });

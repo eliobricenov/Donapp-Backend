@@ -6,7 +6,7 @@ import { HttpException } from '../util/exceptions/HttpException';
 import * as path from 'path'
 
 // Root path for file uploads
-const UPLOAD_PATH = path.join(__dirname, '../../../', 'server/public/uploads');
+export const UPLOAD_PATH = path.join(__dirname, '../../../', 'server/public/uploads');
 
 // Middleware that filters file upload
 const imageAndMediaFilter = (req: Request, file: Express.Multer.File, cb: Function) => {

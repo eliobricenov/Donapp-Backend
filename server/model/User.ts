@@ -10,4 +10,5 @@ export interface User {
     createdAt: string;
     type?: string;
     condition?: string;
+    avatar?: string;
 }

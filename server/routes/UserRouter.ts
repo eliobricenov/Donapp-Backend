@@ -1,7 +1,8 @@
+import pgp from "../util/db";
 import { Request, Response, Router, NextFunction } from "express";
 import { UserService } from "../service/UserService";
 import { User } from "../model/User";
-import { createUserMiddleware, loginMiddleware, imageTest } from "../middlewares/userMiddleware";
+import { createUserMiddleware, loginMiddleware, imageTest, editUser } from "../middlewares/userMiddleware";
 import { getToken } from "../middlewares/jwt";
 
 
@@ -25,7 +26,7 @@ class UserRouter {
      */
     config(): void {
         this.router.get('/', this.getAllUsers);
-        this.router.get('/id/:id', this.getOneUser)
+        this.router.get('/info/', getToken, this.getOneUser)
         this.router.post('/', createUserMiddleware, this.createUser);
         this.router.post('/login', loginMiddleware, this.login);
         this.router.post('/token/refresh', this.refreshToken);
@@ -33,14 +34,14 @@ class UserRouter {
         this.router.post('/confirmationEmail/:token', this.activateUser);
         this.router.get('/username/:username', this.usernameExists);
         this.router.get('/email/:email', this.emailExists);
-        this.router.put('/id/:id', this.updateUser);
         this.router.delete('/id/:id', this.deleteUser);
         this.router.post('/testLogin', getToken, this.testLogin);
+        this.router.post('/update', editUser, this.edit)
 
 
 
 
-        this.router.post('/image', imageTest, this.testImage);
+        this.router.post('/update', imageTest, this.test);
     }
 
     getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -114,16 +115,32 @@ class UserRouter {
         }
     }
 
-    getOneUser = async (req: Request, res: Response): Promise<void> => {
-        const { id } = req.params;
-        const user: User = await this.userService.findOne(id);
-        res.json({ status: 200, data: user });
+    getOneUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { token } = req;
+            const { name, lastName, email, username, phone, avatar } = await this.userService.findOne(token!);
+            res.json({ status: 200, data: { name, lastName, email, username, phone, avatar } });
+        } catch (error) {
+            next(error);
+        }
     }
 
     createUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const data = req.body;
             const response = await this.userService.create(data);
+            res.status(200).json({ status: 200, data: response });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    edit = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { body, token, file } = req;
+            console.log(body);
+            const response = await this.userService.edit(body, token!, file);
+            console.log(response);
             res.status(200).json({ status: 200, data: response });
         } catch (error) {
             next(error);
@@ -143,9 +160,16 @@ class UserRouter {
         res.json({ status: 200 });
     }
 
-    testImage = async (req: Request, res: Response): Promise<void> => {
-        console.log(req.file);
-        res.json({ status: 200 });
+    test = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            console.log(req.body, req.file);
+            const { id, name, lastName, email } = req.body;
+            // console.log(id, name, lastName, email);
+            await pgp.func('usp_update_user', [id, name, lastName, email])
+            res.json({ status: 200 });
+        } catch (error) {
+            next(error)
+        }
     }
 }
 
