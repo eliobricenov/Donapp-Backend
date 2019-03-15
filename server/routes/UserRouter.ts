@@ -4,11 +4,13 @@ import { UserService } from "../service/UserService";
 import { User } from "../model/User";
 import { createUserMiddleware, loginMiddleware, imageTest, editUser } from "../middlewares/userMiddleware";
 import { getToken } from "../middlewares/jwt";
+import multer = require("multer");
+import { upload } from "../middlewares/multer";
 
 
 /**
  * User router that handles all request related to users
- * @todo delete getAll() endpoint once it is not used anymore, it is not safe
+ * @todo 
  */
 class UserRouter {
 
@@ -25,32 +27,17 @@ class UserRouter {
      * Setup of all the endpoints of the router
      */
     config(): void {
-        this.router.get('/', this.getAllUsers);
         this.router.get('/info/', getToken, this.getOneUser)
         this.router.post('/', createUserMiddleware, this.createUser);
         this.router.post('/login', loginMiddleware, this.login);
-        this.router.post('/token/refresh', this.refreshToken);
         this.router.post('/logout', this.logout);
         this.router.post('/confirmationEmail/:token', this.activateUser);
         this.router.get('/username/:username', this.usernameExists);
         this.router.get('/email/:email', this.emailExists);
         this.router.delete('/id/:id', this.deleteUser);
-        this.router.post('/testLogin', getToken, this.testLogin);
-        this.router.post('/update', editUser, this.edit)
+        this.router.post('/update', editUser, this.updateUser)
 
-
-
-
-        this.router.post('/update', imageTest, this.test);
-    }
-
-    getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const users: User[] = await this.userService.findAll();
-            res.json({ status: 200, data: users });
-        } catch (error) {
-            next(error);
-        }
+        this.router.post('/test', upload.single('file'), this.test);
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -58,16 +45,6 @@ class UserRouter {
         try {
             const [token, refreshToken] = await this.userService.doLogIn(username, password);
             res.status(200).json({ status: 200, token, refreshToken });
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    refreshToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        const { token, refreshToken } = req.body;
-        try {
-            const newToken = await this.userService.refreshToken(token, refreshToken);
-            res.status(200).json({ status: 200, newToken, refreshToken });
         } catch (error) {
             next(error);
         }
@@ -135,7 +112,7 @@ class UserRouter {
         }
     }
 
-    edit = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { body, token, file } = req;
             console.log(body);
@@ -147,25 +124,14 @@ class UserRouter {
         }
     }
 
-    updateUser = async (req: Request, res: Response): Promise<void> => {
-        const { id } = req.params;
-        throw new Error("Method not implemented.");
-    }
-
     deleteUser = async (req: Request, res: Response): Promise<void> => {
         throw new Error("Method not implemented.");
     }
 
-    testLogin = async (req: Request, res: Response): Promise<void> => {
-        res.json({ status: 200 });
-    }
 
     test = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            console.log(req.body, req.file);
-            const { id, name, lastName, email } = req.body;
-            // console.log(id, name, lastName, email);
-            await pgp.func('usp_update_user', [id, name, lastName, email])
+            console.log(req.file);
             res.json({ status: 200 });
         } catch (error) {
             next(error)

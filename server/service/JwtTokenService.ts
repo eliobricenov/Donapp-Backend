@@ -3,6 +3,8 @@ import { HttpException } from '../util/exceptions/HttpException';
 import { redisClient, redisClientAsync } from '../util/redis';
 import { JwtToken } from '../util/helper/JwtToken';
 import { reject } from 'bluebird';
+import { ExpiredTokenException } from '../util/exceptions/ExpiredTokenException';
+import { NotValidTokenException } from '../util/exceptions/NotValidTokenException';
 
 export class JwtTokenService {
 
@@ -25,16 +27,16 @@ export class JwtTokenService {
     }
 
     static decode(token: string, secret?: string, ignoreExp?: boolean): Promise<JwtToken> {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             try {
                 const payload = verify(token, secret || this.SECRET, {ignoreExpiration: ignoreExp || false});
                 resolve(JSON.parse(JSON.stringify(payload)));
             } catch (err) {
                 switch (err) {
                     case err instanceof TokenExpiredError:
-                        reject(new HttpException(403, 'Expired Token'))
+                        reject(new ExpiredTokenException(token))
                     default:
-                        reject(new HttpException(403, 'Invalid Token'))
+                        reject(new NotValidTokenException(token))
                 }
             }
         });
@@ -55,7 +57,7 @@ export class JwtTokenService {
             const newToken = await this.generateToken(data);
             return newToken;
         } else {
-            throw new HttpException(403, 'Invalid Refresh Token');
+            throw new NotValidTokenException(token);
         }
     }
 

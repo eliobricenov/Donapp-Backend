@@ -2,13 +2,13 @@ import { UserRepository } from "../repository";
 import { User } from "../model/User";
 import { MailService } from "./MailService";
 import { TokenService } from "./TokenService";
-import { TokenNotValidException } from "../util/exceptions/TokenNotValidException";
 import { UserNotFoundException } from "../util/exceptions/UserNotFoundException";
 import { InvalidCredentialsException } from "../util/exceptions/InvalidCredentialsException";
 import { JwtTokenService } from "./JwtTokenService";
+import { NotValidTokenException } from "../util/exceptions/NotValidTokenException";
 
 /**
- * @todo Change transactional methods to repository
+ * @todo 
  */
 
 export class UserService {
@@ -56,7 +56,7 @@ export class UserService {
         if (user) {
             await this.userRepository.activateUser(_token, user);
         } else {
-            throw new TokenNotValidException();
+            throw new NotValidTokenException(_token);
         }
     }
 

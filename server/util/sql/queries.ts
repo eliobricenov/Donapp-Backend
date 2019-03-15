@@ -1,6 +1,6 @@
 const userQueries = {
     findAll: 'SELECT * FROM user',
-    findOne: 'SELECT * FROM person JOIN avatar a on person.avatar_fk = a.avatar_pk WHERE person_pk = ${id}',
+    findOne: 'SELECT name, last_name as "lastName", phone, username, email, url AS avatar FROM person JOIN avatar a on person.avatar_fk = a.avatar_pk WHERE person_pk = ${id}',
     findUserByUsername: 'SELECT person_pk as "id", name, last_name, email, password, enterprise_name, username, phone, created_at, person_pk_type_fk as "type", person_pk_condition_status_fk as "condition" FROM person WHERE username = ${username};',
     searchUsername: 'SELECT count(person_pk) FROM person WHERE username = ${username}',
     searchEmail: 'SELECT count(person_pk) FROM person WHERE email = ${email}',

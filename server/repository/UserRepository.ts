@@ -19,6 +19,7 @@ export class UserRepository {
 
     async findOne(id: string): Promise<User> {
         const user = await pgp.oneOrNone(userQueries.findOne, { id });
+        console.log(user);
         return user;
     }
 
@@ -38,14 +39,14 @@ export class UserRepository {
 
     async edit(data: User, file: Express.Multer.File): Promise<{}> {
         const updatedUser = await pgp.tx(async tx => {
-            const { id, name, lastName } = data;
+            const { id, name, lastName, phone } = data;
             const avatarId = v4();
             const createdAt = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
             const avatarPath = file.path;
             const avatarName = file.filename;
             const url = `uploads/${avatarName}`;
             await tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url});
-            await tx.func('usp_update_user', [id, name, lastName, avatarId]);
+            await tx.func('usp_update_user', [id, name, lastName, phone, avatarId]);
             return { name, lastName, url }
         })
         return updatedUser;
