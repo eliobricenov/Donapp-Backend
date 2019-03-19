@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import UserRouter from "./UserRouter";
+import PostRouter from "./PostRouter";
 
 const router = Router();
 
@@ -26,8 +27,8 @@ class IndexRouter {
      * Setup of all the endpoints of the router
      */
     config(): void {
-        this.router.use('/prueba-session', router);
         this.router.use('/user', UserRouter);
+        this.router.use('/post', PostRouter);
     }
 
 

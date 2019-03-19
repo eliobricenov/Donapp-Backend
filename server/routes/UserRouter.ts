@@ -35,9 +35,9 @@ class UserRouter {
         this.router.get('/username/:username', this.usernameExists);
         this.router.get('/email/:email', this.emailExists);
         this.router.delete('/id/:id', this.deleteUser);
-        this.router.post('/update', editUser, this.updateUser)
+        this.router.post('/update', upload.single('avatar'), this.updateUser)
 
-        this.router.post('/test', upload.single('file'), this.test);
+        this.router.post('/test', upload.array('pictures'), this.test);
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -115,10 +115,11 @@ class UserRouter {
     updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { body, token, file } = req;
-            console.log(body);
-            const response = await this.userService.edit(body, token!, file);
-            console.log(response);
-            res.status(200).json({ status: 200, data: response });
+            console.log(body, file);
+            // const response = await this.userService.edit(body.data, token!, file);
+            // console.log(response);
+            // res.status(200).json({ status: 200, data: response });
+            res.status(200).json({ status: 200});
         } catch (error) {
             next(error);
         }
@@ -131,7 +132,8 @@ class UserRouter {
 
     test = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            console.log(req.file);
+            console.log(req.files);
+            console.log(req.body);
             res.json({ status: 200 });
         } catch (error) {
             next(error)

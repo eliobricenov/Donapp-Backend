@@ -19,7 +19,6 @@ export class UserRepository {
 
     async findOne(id: string): Promise<User> {
         const user = await pgp.oneOrNone(userQueries.findOne, { id });
-        console.log(user);
         return user;
     }
 

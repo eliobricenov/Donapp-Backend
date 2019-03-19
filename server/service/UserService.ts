@@ -2,7 +2,7 @@ import { UserRepository } from "../repository";
 import { User } from "../model/User";
 import { MailService } from "./MailService";
 import { TokenService } from "./TokenService";
-import { UserNotFoundException } from "../util/exceptions/UserNotFoundException";
+import { NotFoundException } from "../util/exceptions/NotFoundException";
 import { InvalidCredentialsException } from "../util/exceptions/InvalidCredentialsException";
 import { JwtTokenService } from "./JwtTokenService";
 import { NotValidTokenException } from "../util/exceptions/NotValidTokenException";
@@ -24,7 +24,12 @@ export class UserService {
 
     async findOne(token: string): Promise<User> {
         const { data } = await JwtTokenService.decode(token);
-        return this.userRepository.findOne(data.id);
+        const user = await this.userRepository.findOne(data.id);
+        if (!user) {
+            throw new NotFoundException('user');
+        } else {
+            return user;
+        }
     }
 
     async checkUserCredentials(username: string, password: string): Promise<boolean> {
@@ -33,7 +38,7 @@ export class UserService {
             const match = await this.userRepository.checkUserCredentials(username, password);
             return match;
         } else {
-            throw new UserNotFoundException();
+            throw new NotFoundException('user');
         }
     }
 

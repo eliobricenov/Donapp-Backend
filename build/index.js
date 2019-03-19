@@ -9,3 +9,4 @@ var PORT = process.env.port || 3000;
 server_1.default.listen(PORT, function () {
     console.log("Express server listening on port " + PORT);
 });
+//# sourceMappingURL=index.js.map

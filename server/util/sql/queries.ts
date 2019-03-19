@@ -1,6 +1,6 @@
 const userQueries = {
     findAll: 'SELECT * FROM user',
-    findOne: 'SELECT name, last_name as "lastName", phone, username, email, url AS avatar FROM person JOIN avatar a on person.avatar_fk = a.avatar_pk WHERE person_pk = ${id}',
+    findOne: 'SELECT name, last_name as "lastName", phone, username, email, url AS avatar FROM person LEFT JOIN avatar a on person.avatar_fk = a.avatar_pk WHERE person_pk = ${id}',
     findUserByUsername: 'SELECT person_pk as "id", name, last_name, email, password, enterprise_name, username, phone, created_at, person_pk_type_fk as "type", person_pk_condition_status_fk as "condition" FROM person WHERE username = ${username};',
     searchUsername: 'SELECT count(person_pk) FROM person WHERE username = ${username}',
     searchEmail: 'SELECT count(person_pk) FROM person WHERE email = ${email}',
@@ -15,4 +15,12 @@ const userQueries = {
     registerAvatar: 'INSERT INTO avatar VALUES (${avatarId}, ${avatarPath}, ${createdAt}, ${url})'
 }
 
-export { userQueries };
+
+const postQueries = {
+    createPost: 'INSERT INTO post (post_pk, person_fk, title, description, coordinates, created_at, post_type_fk) VALUES (${id}, ${userId}, ${title}, ${description}, ${coordinates}, ${createdAt}, ${postType})',
+    createPostImage: 'INSERT INTO post_picture (post_picture_pk, post_fk, path, created_at, url) VALUES (${id}, ${postId}, ${path}, ${createdAt}, ${url})',
+    getPostInformation: 'SELECT title,description, p.created_at, coordinates, p.username FROM post JOIN person p on post.person_fk = p.person_pk WHERE post_pk = ${postId}',
+    getImagesFromPost: 'SELECT url FROM post JOIN post_picture picture on post.post_pk = picture.post_fk WHERE post_pk = ${postId}'
+}
+
+export { userQueries, postQueries };

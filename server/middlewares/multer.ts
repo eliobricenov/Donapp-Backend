@@ -24,6 +24,6 @@ const fileNameFilter = (req: Request, file: Express.Multer.File, cb: Function) =
 const diskStorage = multer.diskStorage({destination: UPLOAD_PATH,  filename: fileNameFilter})
 
 // Setting up multer 
-const upload = multer({ storage: diskStorage, fileFilter: imageAndMediaFilter })
+const upload = multer({ storage: diskStorage, fileFilter: imageAndMediaFilter, limits: { fieldSize: 25 * 1024 * 1024 }})
 
 export { upload };

@@ -6,11 +6,9 @@ import { ExpiredTokenException } from "../util/exceptions/ExpiredTokenException"
 import { NotValidTokenException } from "../util/exceptions/NotValidTokenException";
 
 export const getToken = async (req: Request, res: Response, next: NextFunction) => {
-    const token = <string>req.headers['x-access-token'];
+    const token = <string> req.headers['x-access-token'];
     const refreshToken = <string>req.headers['x-refresh-token'];
     if (typeof token != 'undefined' && typeof refreshToken != 'undefined') {
-        // JwtTokenService.decode(token).then().catch( err => console.log(err));
-        // next();
         try {
             await JwtTokenService.decode(token);
             req.token = token;
