@@ -98,6 +98,14 @@ export class UserService {
     async edit(user: User, token: string, file: Express.Multer.File) {
         const { data } = await JwtTokenService.decode(token);
         user.id = data.id;
-        return this.userRepository.edit(user, file);
+        if (file !== undefined ) {
+            //const {avatar} = this.userRepository.findOne(user.id);
+            //deleteFile(avatar);
+            return this.userRepository.edit(user, file)
+        } else {
+            console.log('no cambio');
+            //delete all files 
+            return this.userRepository.edit(user);
+        }
     }
 }

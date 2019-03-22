@@ -11,4 +11,5 @@ export interface User {
     type?: string;
     condition?: string;
     avatar?: string;
+    state?: string;
 }

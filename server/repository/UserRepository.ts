@@ -6,6 +6,7 @@ import { userQueries } from "../util/sql/queries";
 import { Token } from '../util/helper/Token';
 import moment = require('moment');
 import db = require('../util/db');
+import { getCurrentMoment } from '../util/helper/util';
 
 
 export class UserRepository {
@@ -25,7 +26,7 @@ export class UserRepository {
     async create(data: User): Promise<User> {
         const id = v4();
         const { username, email, password } = data;
-        const createdAt = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
+        const createdAt = getCurrentMoment();
         await pgp.none(userQueries.createUserV1, { id, username, email, password, createdAt });
         return { id, username, email, password, createdAt }
 
@@ -36,17 +37,19 @@ export class UserRepository {
         return user;
     }
 
-    async edit(data: User, file: Express.Multer.File): Promise<{}> {
+    async edit(data: User, file?: Express.Multer.File): Promise<{}> {
         const updatedUser = await pgp.tx(async tx => {
-            const { id, name, lastName, phone } = data;
+            const { id, name, lastName, state } = data;
             const avatarId = v4();
-            const createdAt = moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
-            const avatarPath = file.path;
-            const avatarName = file.filename;
+            const createdAt = getCurrentMoment();
+            const [avatarPath, avatarName] = file ? [file.path, file.filename] : ['', ''];
             const url = `uploads/${avatarName}`;
-            await tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url});
-            await tx.func('usp_update_user', [id, name, lastName, phone, avatarId]);
-            return { name, lastName, url }
+            const promises = file ? Promise.all([
+                tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url }),
+                tx.func('usp_update_user', [id, name, lastName, avatarId, state])
+            ]) : []; 
+            await promises;
+            return file ? { name, lastName, url } : { name, lastName };
         })
         return updatedUser;
     }

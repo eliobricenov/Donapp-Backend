@@ -1,10 +1,7 @@
-import pgp from "../util/db";
 import { Request, Response, Router, NextFunction } from "express";
 import { UserService } from "../service/UserService";
-import { User } from "../model/User";
-import { createUserMiddleware, loginMiddleware, imageTest, editUser } from "../middlewares/userMiddleware";
+import { createUserMiddleware, loginMiddleware } from "../middlewares/userMiddleware";
 import { getToken } from "../middlewares/jwt";
-import multer = require("multer");
 import { upload } from "../middlewares/multer";
 
 
@@ -27,7 +24,7 @@ class UserRouter {
      * Setup of all the endpoints of the router
      */
     config(): void {
-        this.router.get('/info/', getToken, this.getOneUser)
+        this.router.get('/info/', getToken,this.getOneUser)
         this.router.post('/', createUserMiddleware, this.createUser);
         this.router.post('/login', loginMiddleware, this.login);
         this.router.post('/logout', this.logout);
@@ -35,9 +32,9 @@ class UserRouter {
         this.router.get('/username/:username', this.usernameExists);
         this.router.get('/email/:email', this.emailExists);
         this.router.delete('/id/:id', this.deleteUser);
-        this.router.post('/update', upload.single('avatar'), this.updateUser)
+        this.router.post('/update', [getToken, upload.single('avatar')], this.updateUser)
 
-        this.router.post('/test', upload.array('pictures'), this.test);
+        this.router.post('/test', this.test);
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -115,25 +112,22 @@ class UserRouter {
     updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { body, token, file } = req;
-            console.log(body, file);
-            // const response = await this.userService.edit(body.data, token!, file);
-            // console.log(response);
-            // res.status(200).json({ status: 200, data: response });
-            res.status(200).json({ status: 200});
+            const response = await this.userService.edit(body, token!, file);
+            console.log(file, response);
+            res.status(200).json({ status: 200, data: response });
         } catch (error) {
+            console.log('error');
             next(error);
         }
     }
 
-    deleteUser = async (req: Request, res: Response): Promise<void> => {
+    deleteUser = async (): Promise<void> => {
         throw new Error("Method not implemented.");
     }
 
 
     test = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            console.log(req.files);
-            console.log(req.body);
             res.json({ status: 200 });
         } catch (error) {
             next(error)

@@ -23,4 +23,7 @@ const postQueries = {
     getImagesFromPost: 'SELECT url FROM post JOIN post_picture picture on post.post_pk = picture.post_fk WHERE post_pk = ${postId}'
 }
 
-export { userQueries, postQueries };
+const utilQueries = {
+    getStates: 'SELECT state_pk AS id, name FROM state;'
+}
+export { userQueries, postQueries, utilQueries };
