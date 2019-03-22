@@ -47,7 +47,7 @@ export class UserRepository {
             const promises = file ? Promise.all([
                 tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url }),
                 tx.func('usp_update_user', [id, name, lastName, avatarId, state])
-            ]) : []; 
+            ]) : [tx.func('usp_update_user', [id, name, lastName, state])]; 
             await promises;
             return file ? { name, lastName, url } : { name, lastName };
         })

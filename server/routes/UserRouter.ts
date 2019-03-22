@@ -113,7 +113,7 @@ class UserRouter {
         try {
             const { body, token, file } = req;
             const response = await this.userService.edit(body, token!, file);
-            console.log(file, response);
+            console.log(response);
             res.status(200).json({ status: 200, data: response });
         } catch (error) {
             console.log('error');
