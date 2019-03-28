@@ -10,7 +10,7 @@ export const getToken = async (req: Request, res: Response, next: NextFunction) 
     if (typeof token != 'undefined' && typeof refreshToken != 'undefined') {
         try {
             const { data } = await JwtTokenService.decode(token);
-            req.userID = data;
+            req.userID = data.id;
             next();
         } catch (error) {
             // if (error instanceof ExpiredTokenException) {
@@ -28,7 +28,7 @@ export const getToken = async (req: Request, res: Response, next: NextFunction) 
                 console.log('Generating new access token through the refresh token');
                 const newToken = await JwtTokenService.refreshToken(token, refreshToken);
                 const { data } = await JwtTokenService.decode(newToken);
-                req.userID = data;
+                req.userID = data.id;
                 next();
             } catch (error) {
                 next(new NotValidTokenException(refreshToken, true));

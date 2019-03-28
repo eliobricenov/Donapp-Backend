@@ -122,8 +122,8 @@ class UserRouter {
 
     disableUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { body, sessionID, file } = req;
-            await this.userService.disableUser(sessionID!);
+            const { body, userID, file } = req;
+            await this.userService.disableUser(userID!);
             res.status(200).json({ status: 200 });
         } catch (error) {
             next(error);
