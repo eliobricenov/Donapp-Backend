@@ -6,6 +6,7 @@ import { NotFoundException } from "../util/exceptions/NotFoundException";
 import { InvalidCredentialsException } from "../util/exceptions/InvalidCredentialsException";
 import { JwtTokenService } from "./JwtTokenService";
 import { NotValidTokenException } from "../util/exceptions/NotValidTokenException";
+import { removeUnusedImages } from "../util/helper/util";
 
 /**
  * @todo 
@@ -98,13 +99,13 @@ export class UserService {
     async edit(user: User, token: string, file: Express.Multer.File) {
         const { data } = await JwtTokenService.decode(token);
         user.id = data.id;
-        if (file !== undefined ) {
-            //const {avatar} = this.userRepository.findOne(user.id);
-            //deleteFile(avatar);
-            return this.userRepository.edit(user, file)
+        //check if a new avatar was registered
+        if (file !== undefined) {
+            const { path: oldAvatar } = await this.userRepository.getAvatarInformation(user.id);
+            const updatedUser = await this.userRepository.edit(user, file)
+            removeUnusedImages([oldAvatar!]);
+            return updatedUser;
         } else {
-            console.log('no cambio');
-            //delete all files 
             return this.userRepository.edit(user);
         }
     }

@@ -42,20 +42,20 @@ export class UserRepository {
             const { id, name, lastName, state } = data;
             const avatarId = v4();
             const createdAt = getCurrentMoment();
+            // checking the avatar information only if there was a new avatar uploaded
             const [avatarPath, avatarName] = file ? [file.path, file.filename] : ['', ''];
             const url = `uploads/${avatarName}`;
+            //if there was a new avatar uploaded then the actions must be registering the image and editing
+            //the existing user information if not then just update the user information
             const promises = file ? Promise.all([
                 tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url }),
                 tx.func('usp_update_user', [id, name, lastName, avatarId, state])
-            ]) : [tx.func('usp_update_user', [id, name, lastName, state])]; 
+            ]) : [tx.func('usp_update_user', [id, name, lastName, state])];
+            //execute actions
             await promises;
             return file ? { name, lastName, url } : { name, lastName };
         })
         return updatedUser;
-    }
-
-    delete(id: string): Promise<User> {
-        throw new Error("Method not implemented.");
     }
 
     async checkUserCredentials(username: string, password: string): Promise<boolean> {
@@ -93,6 +93,11 @@ export class UserRepository {
             const { id: confirmationTokenId } = <Token>await tx.oneOrNone(userQueries.findConfirmationToken, { token });
             await pgp.none(userQueries.deleteEmailConfirmation, { id: confirmationTokenId });
         })
+    }
+
+    async getAvatarInformation(id: string) {
+        const avatar = await pgp.oneOrNone(userQueries.getAvatarInformation, { id });
+        return avatar;
     }
 
 }
