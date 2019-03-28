@@ -24,14 +24,14 @@ class UserRouter {
      * Setup of all the endpoints of the router
      */
     config(): void {
-        this.router.get('/info/', getToken,this.getOneUser)
+        this.router.get('/info/', getToken, this.getOneUser)
         this.router.post('/', createUserMiddleware, this.createUser);
         this.router.post('/login', loginMiddleware, this.login);
         this.router.post('/logout', this.logout);
         this.router.post('/confirmationEmail/:token', this.activateUser);
         this.router.get('/username/:username', this.usernameExists);
         this.router.get('/email/:email', this.emailExists);
-        this.router.delete('/id/:id', this.deleteUser);
+        this.router.delete('/id/:id', this.disableUser);
         this.router.post('/update', [getToken, upload.single('avatar')], this.updateUser)
 
         this.router.post('/test', this.test);
@@ -91,8 +91,8 @@ class UserRouter {
 
     getOneUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { token } = req;
-            const { name, lastName, email, username, phone, avatar } = await this.userService.findOne(token!);
+            const { sessionID } = req;
+            const { name, lastName, email, username, phone, avatar } = await this.userService.findOne(sessionID!);
             res.json({ status: 200, data: { name, lastName, email, username, phone, avatar } });
         } catch (error) {
             next(error);
@@ -102,7 +102,8 @@ class UserRouter {
     createUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const data = req.body;
-            const response = await this.userService.create(data);
+            const { userID } = req;
+            const response = await this.userService.create(data, userID!);
             res.status(200).json({ status: 200, data: response });
         } catch (error) {
             next(error);
@@ -111,8 +112,8 @@ class UserRouter {
 
     updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { body, token, file } = req;
-            const response = await this.userService.edit(body, token!, file);
+            const { body, userID, file } = req;
+            const response = await this.userService.edit(body, userID!, file);
             console.log(response);
             res.status(200).json({ status: 200, data: response });
         } catch (error) {
@@ -121,8 +122,14 @@ class UserRouter {
         }
     }
 
-    deleteUser = async (): Promise<void> => {
-        throw new Error("Method not implemented.");
+    disableUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { body, sessionID, file } = req;
+            await this.userService.disableUser(sessionID!);
+            res.status(200).json({ status: 200 });
+        } catch (error) {
+            next(error);
+        }
     }
 
 

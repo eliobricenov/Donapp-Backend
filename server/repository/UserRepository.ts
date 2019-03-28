@@ -4,18 +4,12 @@ import { User } from "../model/User";
 import pgp from "../util/db";
 import { userQueries } from "../util/sql/queries";
 import { Token } from '../util/helper/Token';
-import db from '../util/db';
 import { getCurrentMoment } from '../util/helper/util';
 
 
 export class UserRepository {
 
     private STATUS = { ACTIVE: 1, INACTIVE: 2 };
-
-    async findAll(): Promise<User[]> {
-        const users = await pgp.manyOrNone(userQueries.findAll);
-        return users;
-    }
 
     async findOne(id: string): Promise<User> {
         const user = await pgp.oneOrNone(userQueries.findOne, { id });
@@ -87,9 +81,9 @@ export class UserRepository {
     }
 
     async activateUser(token: string, user: User) {
-        db.tx(async tx => {
+        pgp.tx(async tx => {
             await tx.none(userQueries.updateUserStatus, { id: user.id, status: this.STATUS.ACTIVE });
-            const { id: confirmationTokenId } = <Token>await tx.oneOrNone(userQueries.findConfirmationToken, { token });
+            const { id: confirmationTokenId } = <Token> await tx.oneOrNone(userQueries.findConfirmationToken, { token });
             await pgp.none(userQueries.deleteEmailConfirmation, { id: confirmationTokenId });
         })
     }
@@ -97,6 +91,10 @@ export class UserRepository {
     async getAvatarInformation(id: string) {
         const avatar = await pgp.oneOrNone(userQueries.getAvatarInformation, { id });
         return avatar;
+    }
+
+    async disableUser(id: string) {
+        await pgp.none(userQueries.updateUserStatus, { id, status: this.STATUS.INACTIVE });
     }
 
 }

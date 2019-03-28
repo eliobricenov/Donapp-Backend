@@ -19,13 +19,8 @@ export class UserService {
         this.userRepository = new UserRepository();
     }
 
-    findAll(): Promise<User[]> {
-        return this.userRepository.findAll();
-    }
-
-    async findOne(token: string): Promise<User> {
-        const { data } = await JwtTokenService.decode(token);
-        const user = await this.userRepository.findOne(data.id);
+    async findOne(id: string): Promise<User> {
+        const user = await this.userRepository.findOne(id);
         if (!user) {
             throw new NotFoundException('user');
         } else {
@@ -43,7 +38,8 @@ export class UserService {
         }
     }
 
-    async create(data: User): Promise<User> {
+    async create(data: User, userId: string): Promise<User> {
+        data.id = userId;
         const user = await this.userRepository.create(data);
         await this.sendConfirmationEmail(user.id, user.email);
         return user;
@@ -96,9 +92,8 @@ export class UserService {
         return JwtTokenService.refreshToken(token, refreshToken);
     }
 
-    async edit(user: User, token: string, file: Express.Multer.File) {
-        const { data } = await JwtTokenService.decode(token);
-        user.id = data.id;
+    async edit(user: User, userId: string, file: Express.Multer.File) {
+        user.id = userId;
         //check if a new avatar was registered
         if (file !== undefined) {
             const { path: oldAvatar } = await this.userRepository.getAvatarInformation(user.id);
@@ -108,5 +103,9 @@ export class UserService {
         } else {
             return this.userRepository.edit(user);
         }
+    }
+
+    async disableUser(id: string) {
+        await this.userRepository.disableUser(id):
     }
 }
