@@ -1,6 +1,4 @@
-// import * as multer from "multer";
-
-import multer = require('multer');
+import multer from 'multer';
 import { Request } from "express";
 import { HttpException } from '../util/exceptions/HttpException';
 import * as path from 'path'

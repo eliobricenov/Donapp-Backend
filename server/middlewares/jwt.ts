@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { NextFunction } from "connect";
 import { JwtTokenService } from "../service/JwtTokenService";
 import { HttpException } from "../util/exceptions/HttpException";
-import { ExpiredTokenException } from "../util/exceptions/ExpiredTokenException";
 import { NotValidTokenException } from "../util/exceptions/NotValidTokenException";
 
 export const getToken = async (req: Request, res: Response, next: NextFunction) => {
