@@ -4,8 +4,7 @@ import { User } from "../model/User";
 import pgp from "../util/db";
 import { userQueries } from "../util/sql/queries";
 import { Token } from '../util/helper/Token';
-import moment = require('moment');
-import db = require('../util/db');
+import db from '../util/db';
 import { getCurrentMoment } from '../util/helper/util';
 
 
