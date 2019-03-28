@@ -6,7 +6,7 @@ export function errorMiddleware(err: HttpException, req: Request, res: Response,
     console.log(err);
     const status = err.status || 500;
     const message = status != 500 ? err.message : 'Internal Server Error';
-    const errors = err.errors.map(err => JSON.stringify(err)) || [];
+    const errors = err.errors ? err.errors.map(err => JSON.stringify(err)) : [];
     console.log(errors);
     res.status(status).json({ status, message, errors });
 }

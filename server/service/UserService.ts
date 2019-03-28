@@ -106,6 +106,6 @@ export class UserService {
     }
 
     async disableUser(id: string) {
-        await this.userRepository.disableUser(id):
+        await this.userRepository.disableUser(id);
     }
 }

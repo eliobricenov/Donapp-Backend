@@ -31,7 +31,7 @@ class UserRouter {
         this.router.post('/confirmationEmail/:token', this.activateUser);
         this.router.get('/username/:username', this.usernameExists);
         this.router.get('/email/:email', this.emailExists);
-        this.router.delete('/id/:id', this.disableUser);
+        this.router.delete('/', getToken, this.disableUser);
         this.router.post('/update', [getToken, upload.single('avatar')], this.updateUser)
 
         this.router.post('/test', this.test);
@@ -114,10 +114,8 @@ class UserRouter {
         try {
             const { body, userID, file } = req;
             const response = await this.userService.edit(body, userID!, file);
-            console.log(response);
             res.status(200).json({ status: 200, data: response });
         } catch (error) {
-            console.log('error');
             next(error);
         }
     }
