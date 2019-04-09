@@ -22,12 +22,13 @@ export class PostService {
         }
     }
 
-    async createPost(userId: string, post: Post, images: Express.Multer.File[]) {
-        post.userId = userId;
-        // const x = images.map(image => ({ filename: image.filename, path: image.path }))
-        // console.log(x);
-        const createdPost = await this.postRepository.createPost(post, images);
+    async createPost(userId: string, data: Post, images: Express.Multer.File[]) {
+        data.userId = userId;
+        const createdPost = await this.postRepository.createPost(data, images);
         return createdPost;
-        // return null;
+    }
+
+    async updatePost(postId: string, data: Post, images: Express.Multer.File[]) {
+        console.log(data);
     }
 }

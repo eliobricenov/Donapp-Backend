@@ -1,15 +1,14 @@
-import { Router } from "express";
 import getStatesRoute from "../util/helper/getStates";
+import Router from "./Router";
 
 /**
  * @todo 
  */
-class UtilRouter {
+class UtilRouter extends Router {
 
-    router: Router;
 
     constructor() {
-        this.router = Router();
+        super();
         this.config();
     }
 

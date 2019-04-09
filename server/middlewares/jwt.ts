@@ -3,6 +3,7 @@ import { NextFunction } from "connect";
 import { JwtTokenService } from "../service/JwtTokenService";
 import { HttpException } from "../util/exceptions/HttpException";
 import { NotValidTokenException } from "../util/exceptions/NotValidTokenException";
+import { ExpiredTokenException } from "../util/exceptions/ExpiredTokenException";
 
 export const getToken = async (req: Request, res: Response, next: NextFunction) => {
     const token = <string> req.headers['x-access-token'];
@@ -13,6 +14,7 @@ export const getToken = async (req: Request, res: Response, next: NextFunction) 
             req.userID = data.id;
             next();
         } catch (error) {
+            console.log(error instanceof ExpiredTokenException);
             // if (error instanceof ExpiredTokenException) {
             //     try {
             //         console.log('Generating new access token through the refresh token');

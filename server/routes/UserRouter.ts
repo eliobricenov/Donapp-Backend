@@ -1,21 +1,21 @@
-import { Request, Response, Router, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { UserService } from "../service/UserService";
 import { createUserMiddleware, loginMiddleware } from "../middlewares/userMiddleware";
 import { getToken } from "../middlewares/jwt";
 import { upload } from "../middlewares/multer";
+import Router from "./Router";
 
 
 /**
  * User router that handles all request related to users
  * @todo 
  */
-class UserRouter {
+class UserRouter extends Router {
 
-    router: Router;
     userService: UserService;
 
     constructor() {
-        this.router = Router();
+        super()
         this.userService = new UserService();
         this.config();
     }
@@ -34,13 +34,14 @@ class UserRouter {
         this.router.delete('/', getToken, this.disableUser);
         this.router.post('/update', [getToken, upload.single('avatar')], this.updateUser)
 
-        this.router.post('/test', this.test);
+        this.router.post('/test', upload.single('avatar'), this.test);
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const { username, password } = req.body;
         try {
-            const [token, refreshToken] = await this.userService.doLogIn(username, password);
+            const [token, refreshToken] = await this.userService.doLogin(username, password);
+            console.log(token);
             res.status(200).json({ status: 200, token, refreshToken });
         } catch (error) {
             next(error);
@@ -50,7 +51,7 @@ class UserRouter {
     logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { token } = req.body;
-            await this.userService.doLogOut(token);
+            await this.userService.doLogout(token);
             res.status(200).json({ status: 200 });
         } catch (error) {
             next(error);
@@ -80,7 +81,6 @@ class UserRouter {
     activateUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { token } = req.params;
-            console.log(token);
             await this.userService.activateUser(token);
             const status = 200;
             res.status(200).json({ status });
@@ -91,8 +91,8 @@ class UserRouter {
 
     getOneUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { sessionID } = req;
-            const { name, lastName, email, username, phone, avatar } = await this.userService.findOne(sessionID!);
+            const { userID } = req;
+            const { name, lastName, email, username, phone, avatar } = await this.userService.findOne(userID!);
             res.json({ status: 200, data: { name, lastName, email, username, phone, avatar } });
         } catch (error) {
             next(error);
@@ -122,7 +122,7 @@ class UserRouter {
 
     disableUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { body, userID, file } = req;
+            const { userID } = req;
             await this.userService.disableUser(userID!);
             res.status(200).json({ status: 200 });
         } catch (error) {
@@ -133,6 +133,7 @@ class UserRouter {
 
     test = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
+            console.log(req.body);
             res.json({ status: 200 });
         } catch (error) {
             next(error)

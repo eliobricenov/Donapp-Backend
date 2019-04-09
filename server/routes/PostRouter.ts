@@ -1,20 +1,20 @@
-import { Request, Response, Router, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { upload } from "../middlewares/multer";
 import { PostService } from "../service/PostService";
 import { getToken } from "../middlewares/jwt";
 import { JwtTokenService } from "../service/JwtTokenService";
+import Router from "./Router";
 
 /**
  * User router that handles all request related to users
  * @todo 
  */
-class PostRouter {
+class PostRouter extends Router {
 
-    router: Router;
     postService: PostService;
 
     constructor() {
-        this.router = Router();
+        super();
         this.postService = new PostService();
         this.config();
     }
@@ -40,11 +40,21 @@ class PostRouter {
 
     createPost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { data } = await JwtTokenService.decode(req.token!);
-            const userId = data.id;
+            const userId = req.userID!;
             const files = <Express.Multer.File[]> req.files;
             const createdPost = await this.postService.createPost(userId, req.body, files);
             res.json({ status: 200, data: createdPost });
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    updatePost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = req.userID!;
+            const files = <Express.Multer.File[]> req.files;
+            const updatePost = await this.postService.createPost(userId, req.body, files);
+            res.json({ status: 200, data: updatePost });
         } catch (error) {
             next(error)
         }

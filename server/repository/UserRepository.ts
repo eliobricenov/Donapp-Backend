@@ -30,23 +30,22 @@ export class UserRepository {
         return user;
     }
 
-    async edit(data: User, file?: Express.Multer.File): Promise<{}> {
+    async edit(data: User, avatar?: Express.Multer.File): Promise<{}> {
         const updatedUser = await pgp.tx(async tx => {
             const { id, name, lastName, state } = data;
             const avatarId = v4();
             const createdAt = getCurrentMoment();
             // checking the avatar information only if there was a new avatar uploaded
-            const [avatarPath, avatarName] = file ? [file.path, file.filename] : ['', ''];
+            const [avatarPath, avatarName] = avatar ? [avatar.path, avatar.filename] : ['', ''];
             const url = `uploads/${avatarName}`;
             //if there was a new avatar uploaded then the actions must be registering the image and editing
             //the existing user information if not then just update the user information
-            const promises = file ? Promise.all([
+            const promises = avatar ? Promise.all([
                 tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url }),
                 tx.func('usp_update_user', [id, name, lastName, avatarId, state])
             ]) : [tx.func('usp_update_user', [id, name, lastName, state])];
-            //execute actions
-            await promises;
-            return file ? { name, lastName, url } : { name, lastName };
+            await promises; //execute actions
+            return avatar ? { name, lastName, url } : { name, lastName };
         })
         return updatedUser;
     }
@@ -71,8 +70,8 @@ export class UserRepository {
         await pgp.none(userQueries.createEmailConfirmation, { id, userId, token, expiresIn });
     }
 
-    async findUserByConfirmationToken(token: string): Promise<User> {
-        const user = await pgp.oneOrNone(userQueries.findUserByConfirmationToken, { token });
+    async findUserByConfirmationToken(id: string): Promise<User> {
+        const user = await pgp.oneOrNone(userQueries.findUserByConfirmationToken, { id });
         return user;
     }
 

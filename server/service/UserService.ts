@@ -72,7 +72,7 @@ export class UserService {
         }
     }
 
-    async doLogIn(username: string, password: string): Promise<string[]> {
+    async doLogin(username: string, password: string): Promise<string[]> {
         const valid = await this.checkUserCredentials(username, password);
         if (valid) {
             const user = await this.userRepository.findByUsername(username);
@@ -84,7 +84,7 @@ export class UserService {
         }
     }
 
-    async doLogOut(token: string) {
+    async doLogout(token: string) {
         JwtTokenService.invalidateRefreshToken(token);
     }
 
@@ -92,12 +92,12 @@ export class UserService {
         return JwtTokenService.refreshToken(token, refreshToken);
     }
 
-    async edit(user: User, userId: string, file: Express.Multer.File) {
+    async edit(user: User, userId: string, avatar: Express.Multer.File) {
         user.id = userId;
         //check if a new avatar was registered
-        if (file !== undefined) {
+        if (avatar !== undefined) {
             const { path: oldAvatar } = await this.userRepository.getAvatarInformation(user.id);
-            const updatedUser = await this.userRepository.edit(user, file)
+            const updatedUser = await this.userRepository.edit(user, avatar)
             removeUnusedImages([oldAvatar!]);
             return updatedUser;
         } else {
