@@ -7,4 +7,6 @@ const removeUnusedImages = (files: string[]) => {
     files.forEach(e => fs.unlinkSync(e));
 }
 
-export { getCurrentMoment, removeUnusedImages }
+const singleToArray = (element: any | any[]) => (element instanceof Array) ? element : [element];
+
+export { getCurrentMoment, removeUnusedImages, singleToArray }

@@ -4,7 +4,9 @@ import pgp from "../util/db";
 import moment = require('moment');
 import { Post } from '../model/Post';
 import { postQueries } from '../util/sql/queries';
-import { getCurrentMoment } from '../util/helper/util';
+import { getCurrentMoment, singleToArray } from '../util/helper/util';
+import { Image } from '../util/helper/Image';
+import { txMode } from 'pg-promise';
 
 
 export class PostRepository {
@@ -14,7 +16,7 @@ export class PostRepository {
         if (!post) {
             return post;
         } else {
-            post.images = await pgp.many(postQueries.getImagesFromPost, { postId })
+            post.images = await pgp.manyOrNone(postQueries.getImagesFromPost, { postId })
             return post;
         }
     }
@@ -38,6 +40,39 @@ export class PostRepository {
         });
 
         return createdPost;
+    }
+
+    async updatePost(post: Post, images?: Express.Multer.File[]) {
+        const { id, description, coordinates, title } = post;
+        await pgp.tx(async tx => {
+            await tx.none(postQueries.updatePost, { id, title, description, coordinates });
+            if (images) {
+                await Promise.all(images.map(async image => {
+                    const imageId = v4();
+                    const { path, filename } = image;
+                    const url = `uploads/${filename}`;
+                    const createdAt = getCurrentMoment();
+                    await tx.none(postQueries.createPostImage, { id: imageId, postId: id, path, createdAt, url });
+                }));
+            }
+        });
+        return await this.findPost(id);
+    }
+
+    async deletePost(id: string) {
+        await pgp.none(postQueries.deletePost, { id });
+    }
+
+    async deletePostPictures(urls: string | string[]) {
+        const _urls = singleToArray(urls);
+        await pgp.tx(async tx => {
+            await Promise.all(_urls.map(async url => tx.none(postQueries.deletePicture, { url })));
+        })
+    }
+
+    async getPostPicturesByUrl(url: string): Promise<Image> {
+        const picture = await pgp.one(postQueries.getPostImage, { url })
+        return picture;
     }
 
 }

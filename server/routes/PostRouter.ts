@@ -25,6 +25,8 @@ class PostRouter extends Router {
     config(): void {
         this.router.get('/id/:id', this.findPost);
         this.router.post('/', [getToken, upload.array('pictures')], this.createPost);
+        this.router.put('/', upload.array('pictures'), this.updatePost);,
+        this.router.delete('/id/:id', this.deletePost);
     }
 
     findPost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -41,7 +43,7 @@ class PostRouter extends Router {
     createPost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.userID!;
-            const files = <Express.Multer.File[]> req.files;
+            const files = <Express.Multer.File[]>req.files;
             const createdPost = await this.postService.createPost(userId, req.body, files);
             res.json({ status: 200, data: createdPost });
         } catch (error) {
@@ -52,9 +54,19 @@ class PostRouter extends Router {
     updatePost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.userID!;
-            const files = <Express.Multer.File[]> req.files;
-            const updatePost = await this.postService.createPost(userId, req.body, files);
+            const files = <Express.Multer.File[]>req.files;
+            const updatePost = await this.postService.updatePost(userId, req.body, files);
             res.json({ status: 200, data: updatePost });
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    deletePost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params;
+            await this.postService.deletePost(id);
+            res.json({ status: 200 });
         } catch (error) {
             next(error)
         }

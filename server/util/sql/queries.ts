@@ -21,7 +21,11 @@ const postQueries = {
     createPost: 'INSERT INTO post (post_pk, person_fk, title, description, coordinates, created_at, post_type_fk) VALUES (${id}, ${userId}, ${title}, ${description}, ${coordinates}, ${createdAt}, ${postType})',
     createPostImage: 'INSERT INTO post_picture (post_picture_pk, post_fk, path, created_at, url) VALUES (${id}, ${postId}, ${path}, ${createdAt}, ${url})',
     getPostInformation: 'SELECT title,description, p.created_at, coordinates, p.username FROM post JOIN person p on post.person_fk = p.person_pk WHERE post_pk = ${postId}',
-    getImagesFromPost: 'SELECT url FROM post JOIN post_picture picture on post.post_pk = picture.post_fk WHERE post_pk = ${postId}'
+    getImagesFromPost: 'SELECT url FROM post JOIN post_picture picture on post.post_pk = picture.post_fk WHERE post_pk = ${postId}',
+    updatePost: 'UPDATE post SET title = ${title}, description = ${description}, coordinates = ${coordinates} WHERE post_pk = ${id}',
+    deletePicture: 'DELETE FROM post_picture WHERE url = ${url}',
+    getPostImage: 'SELECT post_picture_pk AS id, url, path FROM post_picture WHERE url = ${url}',
+    deletePost: 'DELETE FROM post WHERE post_pk = ${id}'
 }
 
 const utilQueries = {

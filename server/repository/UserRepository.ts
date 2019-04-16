@@ -35,16 +35,19 @@ export class UserRepository {
             const { id, name, lastName, state } = data;
             const avatarId = v4();
             const createdAt = getCurrentMoment();
+
             // checking the avatar information only if there was a new avatar uploaded
             const [avatarPath, avatarName] = avatar ? [avatar.path, avatar.filename] : ['', ''];
             const url = `uploads/${avatarName}`;
+
             //if there was a new avatar uploaded then the actions must be registering the image and editing
             //the existing user information if not then just update the user information
-            const promises = avatar ? Promise.all([
+            const updates = avatar ? Promise.all([
                 tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url }),
                 tx.func('usp_update_user', [id, name, lastName, avatarId, state])
             ]) : [tx.func('usp_update_user', [id, name, lastName, state])];
-            await promises; //execute actions
+            
+            await updates; //execute actions
             return avatar ? { name, lastName, url } : { name, lastName };
         })
         return updatedUser;
