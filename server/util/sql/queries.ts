@@ -18,6 +18,8 @@ const userQueries = {
 
 
 const postQueries = {
+    fetch: 'SELECT * FROM post ORDER BY post_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    fetchWithLimit: 'SELECT * FROM post WHERE post_pk < ${id} ORDER BY post_pk DESC FETCH FIRST ${size} ROWS ONLY;',
     createPost: 'INSERT INTO post (post_pk, person_fk, title, description, coordinates, created_at, post_type_fk) VALUES (${id}, ${userId}, ${title}, ${description}, ${coordinates}, ${createdAt}, ${postType})',
     createPostImage: 'INSERT INTO post_picture (post_picture_pk, post_fk, path, created_at, url) VALUES (${id}, ${postId}, ${path}, ${createdAt}, ${url})',
     getPostInformation: 'SELECT title,description, p.created_at, coordinates, p.username FROM post JOIN person p on post.person_fk = p.person_pk WHERE post_pk = ${postId}',

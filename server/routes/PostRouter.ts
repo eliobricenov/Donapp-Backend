@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { upload } from "../middlewares/multer";
 import { PostService } from "../service/PostService";
 import { getToken } from "../middlewares/jwt";
-import { JwtTokenService } from "../service/JwtTokenService";
 import Router from "./Router";
 
 /**
@@ -23,10 +22,22 @@ class PostRouter extends Router {
      * Setup of all the endpoints of the router
      */
     config(): void {
+        this.router.get('/', this.fetch);
         this.router.get('/id/:id', this.findPost);
         this.router.post('/', [getToken, upload.array('pictures')], this.createPost);
-        this.router.put('/', upload.array('pictures'), this.updatePost);,
-        this.router.delete('/id/:id', this.deletePost);
+        this.router.put('/', upload.array('pictures'), this.updatePost),
+            this.router.delete('/id/:id', this.deletePost);
+    }
+
+    fetch = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { size, lastItem } = req.query;
+            const posts = await this.postService.fetch(size, lastItem);
+            res.json({ status: 200, data: posts });
+        } catch (error) {
+            next(error);
+        }
+
     }
 
     findPost = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

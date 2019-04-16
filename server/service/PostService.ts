@@ -14,6 +14,17 @@ export class PostService {
         this.postRepository = new PostRepository();
     }
 
+    async fetch(size?: number, lastItemId?: string) {
+        if (lastItemId) {
+            await this.findOne(lastItemId);
+            const posts = await this.postRepository.fetch(size, lastItemId);
+            return posts;
+        } else {
+            const posts = await this.postRepository.fetch(size);
+            return posts;
+        }
+    }
+
     async findOne(id: string): Promise<Post> {
         const post = await this.postRepository.findPost(id);
         if (!post) {

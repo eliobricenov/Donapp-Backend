@@ -1,16 +1,24 @@
 import { v4 } from 'uuid';
 
 import pgp from "../util/db";
-import moment = require('moment');
 import { Post } from '../model/Post';
 import { postQueries } from '../util/sql/queries';
 import { getCurrentMoment, singleToArray } from '../util/helper/util';
 import { Image } from '../util/helper/Image';
-import { txMode } from 'pg-promise';
 
 
 export class PostRepository {
 
+    async fetch(size?: number | 5, lastItemId?: string) {
+        if (lastItemId) {
+            const posts = await pgp.manyOrNone(postQueries.fetchWithLimit, { size, id: lastItemId })
+            return posts || [];
+        } else {
+            const posts = await pgp.manyOrNone(postQueries.fetch, { size });
+            return posts || [];
+        }
+    }
+    
     async findPost(postId: string) {
         const post = await pgp.oneOrNone(postQueries.getPostInformation, { postId });
         if (!post) {
