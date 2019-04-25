@@ -5,6 +5,7 @@ export interface Post {
     description: string;
     coordinates: string;
     createdAt: string;
-    images?: [];
+    images?: string[];
     deletedPictures?: string;
+    type: string;
 }

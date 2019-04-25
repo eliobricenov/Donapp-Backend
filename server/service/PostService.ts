@@ -2,12 +2,14 @@ import { NotFoundException } from "../util/exceptions/NotFoundException";
 import { PostRepository } from "../repository/PostRepository";
 import { Post } from "../model/Post";
 import { removeUnusedImages, singleToArray } from "../util/helper/util";
+import { postQueries } from "../util/sql/queries";
 
 /**
  * @todo 
  */
 
 export class PostService {
+
     private postRepository: PostRepository;
 
     constructor() {
@@ -48,7 +50,7 @@ export class PostService {
         if (deletedPictures) {
             const toDelete = await this.getPostPicturesFromDisk(deletedPictures); //path of the files
             await this.postRepository.deletePostPictures(deletedPictures);
-            removeUnusedImages(toDelete);   
+            removeUnusedImages(toDelete);
         }
         return images ? this.postRepository.updatePost(data, images) : this.postRepository.updatePost(data);
     }
