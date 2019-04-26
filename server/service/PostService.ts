@@ -60,6 +60,7 @@ export class PostService {
         await this.postRepository.deletePost(id);
     }
 
+
     private async getPostPicturesFromDisk(pictures: string | string[]) {
         const _pictures = singleToArray(pictures);
         return await Promise.all(_pictures.map(async picUrl => {

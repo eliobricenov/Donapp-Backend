@@ -4,7 +4,6 @@ import { types } from "../util/sql/queries";
 import { Post } from "../model/Post";
 import { NotFoundException } from "../util/exceptions/NotFoundException";
 import { PostRequest } from "../model/PostRequest";
-import { DonationRepository } from "../repository/DonationRepository";
 
 export class RequestService<T extends RequestRepository> {
     
@@ -17,14 +16,17 @@ export class RequestService<T extends RequestRepository> {
     }
 
     async fetch(size?: number, lastItemId?: string) {
+        let posts = [];
         if (lastItemId) {
             await this.findOne(lastItemId);
-            const posts = await this.requestRepository.fetch(size, lastItemId);
-            return posts;
+            posts = await this.requestRepository.fetch(size, lastItemId);
         } else {
-            const posts = await this.requestRepository.fetch(size);
-            return posts;
+            posts = await this.requestRepository.fetch(size);
         }
+        for (const p of posts) {
+            p.post = await this.postService.findOne(p.postId)
+        }
+        return posts;
     }
 
     async findOne(id: string): Promise<PostRequest> {

@@ -86,7 +86,7 @@ export class PostRepository {
         return picture;
     }
     
-    private async setPostImage(post: Post) {
+    async setPostImage(post: Post) {
         const images = await pgp.manyOrNone(postQueries.getImagesFromPost, { postId: post.id }) || [];
         post.images = images;
     }
