@@ -3,19 +3,19 @@ import { upload } from "../middlewares/multer";
 import { RequestService } from "../service/RequestService";
 import { getToken } from "../middlewares/jwt";
 import Router from "./Router";
-import { ExchangeRepository } from "../repository/ExchangeRepository";
+import { ExchangeRequestRepository } from "../repository/ExchangeRequestRepository";
 
 /**
  * User router that handles all request related to users
  * @todo 
  */
-class ExchangeRouter extends Router {
+class ExchangeRequestRouter extends Router {
 
-    exchangeService: RequestService<ExchangeRepository>
+    exchangeService: RequestService<ExchangeRequestRepository>
 
     constructor() {
         super();
-        this.exchangeService = new RequestService<ExchangeRepository>(ExchangeRepository);
+        this.exchangeService = new RequestService<ExchangeRequestRepository>(ExchangeRequestRepository);
         this.config();
     }
 
@@ -26,7 +26,6 @@ class ExchangeRouter extends Router {
         this.router.get('/', this.fetch);
         this.router.get('/id/:id', this.findRequest);
         this.router.post('/', [getToken, upload.array('pictures')], this.createExchange);
-        this.router.post('/accept', getToken, this.acceptRequest);
         this.router.delete('/id/:id', this.deleteRequest);
     }
 
@@ -73,17 +72,6 @@ class ExchangeRouter extends Router {
             next(error)
         }
     }
-
-    acceptRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const userId = req.userID!;
-            const { requestId } = req.body;
-            await this.exchangeService.acceptRequest(requestId);
-            res.json({ status: 200 });
-        } catch (error) {
-            next(error)
-        }
-    }
 }
 
-export default new ExchangeRouter().router;
+export default new ExchangeRequestRouter().router;

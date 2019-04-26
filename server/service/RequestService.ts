@@ -1,4 +1,3 @@
-import { PostService } from "./PostService";
 import { RequestRepository } from "../repository/RequestRepository";
 import { types } from "../util/sql/queries";
 import { Post } from "../model/Post";
@@ -7,11 +6,9 @@ import { PostRequest } from "../model/PostRequest";
 
 export class RequestService<T extends RequestRepository> {
     
-    postService: PostService;
     requestRepository: T;
 
     constructor(TCreator: { new(): T; }) {
-        this.postService = new PostService();
         this.requestRepository = new TCreator();
     }
 
@@ -23,23 +20,16 @@ export class RequestService<T extends RequestRepository> {
         } else {
             posts = await this.requestRepository.fetch(size);
         }
-        for (const p of posts) {
-            p.post = await this.postService.findOne(p.postId)
-        }
         return posts;
     }
 
     async findOne(id: string): Promise<PostRequest> {
         const post = await this.requestRepository.findOne(id);
         if (!post) {
-            throw new NotFoundException('post');
+            throw new NotFoundException('request');
         } else {
             return post;
         }
-    }
-
-    async acceptRequest(requestId: string) {
-        await this.requestRepository.acceptRequest(requestId);
     }
 
     async deleteRequest(id: string) {
@@ -50,15 +40,13 @@ export class RequestService<T extends RequestRepository> {
 
     async createDonation(userId: string, data: Post, images: Express.Multer.File[]) {
         data.type = types.DONATION;
-        const createdPost = await this.postService.createPost(userId, data, images);
-        const createdRequest = await this.requestRepository.createRequestPost(userId, createdPost.id);
+        const createdRequest = await this.requestRepository.createRequestPost(userId, data, images);
         return createdRequest;
     }
 
     async createExchange(userId: string, data: Post, images: Express.Multer.File[]) {
         data.type = types.EXCHANGE;
-        const createdPost = await this.postService.createPost(userId, data, images);
-        const createdRequest = await this.requestRepository.createRequestPost(userId, createdPost.id);
+        const createdRequest = await this.requestRepository.createRequestPost(userId,  data, images);
         return createdRequest;
     }
 

@@ -1,7 +1,9 @@
-import { requestStatuses, requestQueries } from "../util/sql/queries";
+import { requestStatuses, requestQueries, postQueries } from "../util/sql/queries";
 import { v4 } from 'uuid';
 import pgp from "../util/db";
 import { PostRequest } from "../model/PostRequest";
+import { getCurrentMoment } from "../util/helper/util";
+import { Post } from "../model/Post";
 
 
 /***
@@ -18,6 +20,9 @@ export abstract class RequestRepository {
         } else {
             posts = await pgp.manyOrNone(requestQueries.fetch, { size, type: this.type }) || [];
         }
+        for (const post of posts) {
+            await this.setPostImage(post)
+        }
         return posts;
     }
 
@@ -26,20 +31,32 @@ export abstract class RequestRepository {
         return post;
     }
 
-    async createRequestPost(userId: string, postId: string) {
-        const id = v4();
-        const requestStatus = requestStatuses.AWAITING_APPROVAL;
-        await pgp.none(requestQueries.createRequest, { id, postId, requestStatus, userId, type: this.type });
-        return { id, postId, sourceId: userId }
+    async createRequestPost(userId: string, data: Post, images: Express.Multer.File[]) {
+        const createdRequest = await pgp.tx(async tx => {
+            const { description, coordinates, title } = data;
+            const requestId = v4();
+            const createdAt = getCurrentMoment();
+            await tx.none(requestQueries.createRequest, { id: requestId, userId, title, description, coordinates, createdAt, type: this.type });
+            const _images = await Promise.all(images.map(async image => {
+                const imageId = v4();
+                const { path, filename } = image;
+                const url = `uploads/${filename}`;
+                const createdAt = getCurrentMoment();
+                await tx.none(requestQueries.createRequestImage, { id: imageId, requestId, path, createdAt, url });
+                return { imageId, url, filename }
+            }));
+            return { id: requestId, userId, title, description, coordinates, createdAt, images: _images };
+        });
+        return createdRequest;
     }
 
     async deleteRequest(id: string) {
         await pgp.none(requestQueries.deleteRequest, { id });
     }
 
-    async acceptRequest(requestId: string) {
-        const requestStatus = requestStatuses.ACCEPTED;
-        await pgp.none(requestQueries.changeRequestStatus, { requestId, requestStatus });
+    async setPostImage(post: Post) {
+        const images = await pgp.manyOrNone(requestQueries.getImagesFromRequest, { requestId: post.id }) || [];
+        post.images = images;
     }
 
     test() {

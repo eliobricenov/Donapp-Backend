@@ -1,11 +1,9 @@
 import { Response } from "express";
 import UserRouter from "./UserRouter";
-import PostRouter from "./PostRouter";
 import UtilRouter from "./UtilRouter";
 import Router from "./Router";
-import { DonationRepository } from "../repository/DonationRepository";
-import ExchangeRouter from "./ExchangeRouter";
-import DonationRouter from "./DonationRouter";
+import ExchangeRouter from "./ExchangeRequestRouter";
+import DonationRouter from "./DonationRequestRouter";
 // import RequestRouter from "./RequestRouter";
 
 class IndexRouter extends Router {
@@ -21,8 +19,8 @@ class IndexRouter extends Router {
     config(): void {
         this.router.use('/', UtilRouter);
         this.router.use('/user', UserRouter);
-        this.router.use('/donation', DonationRouter);
-        this.router.use('/exchange', ExchangeRouter);
+        this.router.use('/request/donation', DonationRouter);
+        this.router.use('/request/exchange', ExchangeRouter);
         // this.router.use('/post', PostRouter);
     }
 

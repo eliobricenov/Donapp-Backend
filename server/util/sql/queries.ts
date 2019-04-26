@@ -49,16 +49,18 @@ export const types = {
 }
 
 export const requestQueries = { 
-    fetch: 'SELECT pk_post_request as id, fk_target_user as "targetUser", p.person_fk as "sourceUser", p.post_pk as "postId", rs.name as status FROM person_post_request JOIN post p on person_post_request.fk_post = p.post_pk JOIN request_status rs on person_post_request.fk_request_status = rs.pk_request_status  WHERE post_type_fk = ${type} ORDER BY pk_post_request DESC FETCH FIRST ${size} ROWS ONLY; ',
-    fetchWithLimit: 'SELECT pk_post_request as id, fk_target_user as "targetUser", p.person_fk as "sourceUser", p.post_pk as "postId", rs.name as status FROM person_post_request JOIN post p on person_post_request.fk_post = p.post_pk JOIN request_status rs on person_post_request.fk_request_status = rs.pk_request_status WHERE post_type_fk = ${type} AND pk_post_request < ${id} ORDER BY pk_post_request DESC FETCH FIRST ${size} ROWS ONLY;',
-    findOne: 'SELECT pk_post_request as id, fk_target_user as "targetUser", p.person_fk as "sourceUser", p.post_pk as "postId", rs.name as status FROM person_post_request JOIN post p on person_post_request.fk_post = p.post_pk JOIN request_status rs on person_post_request.fk_request_status = rs.pk_request_statu WHERE pk_post_request = ${id}',
-    findFromUser: 'SELECT pk_post_request as id, fk_target_user as "targetUser", p.person_fk as "sourceUser", p.post_pk as "postId", rs.name as status FROM person_post_request JOIN post p on person_post_request.fk_post = p.post_pk JOIN request_status rs on person_post_request.fk_request_status = rs.pk_request_status WHERE person_fk = ${id} AND post_type_fk = ${type}',
-    createRequest: 'INSERT INTO person_post_request (pk_post_request, fk_target_user, fk_request_status, fk_post, fk) VALUES (${id}, ${userId}, ${requestStatus}, ${postId})',
+    fetch: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    fetchWithLimit: 'SELECT request_pk as id, title, description, coordinates, created_at, person_fk as "creatorId" FROM request WHERE request_pk < ${id} ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    findOne: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE person_fk = ${userId} ',
+    findFromUser: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE person_fk = ${userId} ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    createRequest: 'INSERT INTO request (request_pk, person_fk, title, description, coordinates, created_at, request_type_fk) VALUES (${id}, ${userId}, ${title}, ${description}, ${coordinates}, ${createdAt}, ${type})',
     deleteRequest: 'DELETE FROM person_post_request WHERE pk_post_request = ${id}',
-    changeRequestStatus: 'UPDATE fk_request_status = ${requestStatus} WHERE pk_post_request = ${requestId}'
-
+    getImagesFromRequest: 'SELECT url FROM request JOIN request_picture picture on request.request_pk = picture.request_fk WHERE request_pk = ${requestId}',
+    createRequestImage: 'INSERT INTO request_picture (request_picture_pk, request_fk, path, created_at, url) VALUES (${id}, ${requestId}, ${path}, ${createdAt}, ${url})'
 
 }
+
+
 
 
 
