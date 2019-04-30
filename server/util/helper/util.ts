@@ -1,5 +1,6 @@
 import moment from 'moment';
 import fs from "fs";
+import { notificationTypes } from '../sql/queries';
 
 const getCurrentMoment = () => moment(Date.now()).format('YYYY-MM-DD HH:mm:ss')
 
@@ -11,30 +12,16 @@ const singleToArray = (element: any | any[]) => (element instanceof Array) ? ele
 
 export { getCurrentMoment, removeUnusedImages, singleToArray }
 
-export abstract class Target {
-    abstract x: string;
+export const getNotificationMessage = (username: string, title: string, type: string) => {
+    switch(type) {
+        case notificationTypes.PROPOSAL_RECEIVED: 
+            return`${username} ha hecho una propuesta de donacion a tu peticion titulada "${title}"`;
+        case notificationTypes.PROPOSAL_ACCEPTED:
+            return`${username} ha aceptado tu propuesta a su peticion titulada "${title}"`;
+        case notificationTypes.PROPOSAL_REJECTED:
+            return`${username} ha rechazado tu propuesta a su peticion titulada "${title}"`;
+        case notificationTypes.DONATION_CONFIRMED:
+            return`${username} ha confirmado tu propuesta a su peticion titulada "${title}"`;
 
-    test() {
-        console.log(this.x);
     }
-}
-
-export class A extends Target {
-    x = '123';
-}
-
-export class B extends Target {
-    x = '321';
-}
-
-export class Awesome<T extends Target> {
-    Prop: T;
-
-    constructor(TCreator: { new(): T; }) {
-        this.Prop = new TCreator();
-     }
-
-    test() {
-        this.Prop.test();
-    }
-}
+} 

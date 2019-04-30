@@ -25,6 +25,7 @@ class UserRouter extends Router {
      */
     config(): void {
         this.router.get('/info/', getToken, this.getOneUser)
+        this.router.get('/contact/:id', getToken, this.getContactInfo);
         this.router.post('/', createUserMiddleware, this.createUser);
         this.router.post('/login', loginMiddleware, this.login);
         this.router.post('/logout', this.logout);
@@ -125,6 +126,16 @@ class UserRouter extends Router {
             const { userID } = req;
             await this.userService.disableUser(userID!);
             res.status(200).json({ status: 200 });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    getContactInfo =  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params;
+            const response = await this.userService.getContactInfo(id);
+            res.status(200).json({ status: 200, response });
         } catch (error) {
             next(error);
         }

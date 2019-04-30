@@ -108,4 +108,10 @@ export class UserService {
     async disableUser(id: string) {
         await this.userRepository.disableUser(id);
     }
+
+    async getContactInfo(userId: string) {
+        this.findOne(userId);
+        const info = await this.userRepository.getContactInfo(userId);
+        return info;
+    }
 }

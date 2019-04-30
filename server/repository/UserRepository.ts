@@ -32,7 +32,7 @@ export class UserRepository {
 
     async edit(data: User, avatar?: Express.Multer.File): Promise<{}> {
         const updatedUser = await pgp.tx(async tx => {
-            const { id, name, lastName, state } = data;
+            const { id, name, lastName, state, phone } = data;
             const avatarId = v4();
             const createdAt = getCurrentMoment();
 
@@ -44,9 +44,9 @@ export class UserRepository {
             //the existing user information if not then just update the user information
             const updates = avatar ? Promise.all([
                 tx.none(userQueries.registerAvatar, { avatarId, avatarPath, createdAt, url }),
-                tx.func('usp_update_user', [id, name, lastName, avatarId, state])
-            ]) : [tx.func('usp_update_user', [id, name, lastName, state])];
-            
+                tx.func('usp_update_user', [id, name, lastName, avatarId, state, phone])
+            ]) : [tx.func('usp_update_user', [id, name, lastName, state, phone])];
+
             await updates; //execute actions
             return avatar ? { name, lastName, url } : { name, lastName };
         })
@@ -85,7 +85,7 @@ export class UserRepository {
     async activateUser(token: string, user: User) {
         pgp.tx(async tx => {
             await tx.none(userQueries.updateUserStatus, { id: user.id, status: this.STATUS.ACTIVE });
-            const { id: confirmationTokenId } = <Token> await tx.oneOrNone(userQueries.findConfirmationToken, { token });
+            const { id: confirmationTokenId } = <Token>await tx.oneOrNone(userQueries.findConfirmationToken, { token });
             await pgp.none(userQueries.deleteEmailConfirmation, { id: confirmationTokenId });
         })
     }
@@ -97,6 +97,11 @@ export class UserRepository {
 
     async disableUser(id: string) {
         await pgp.none(userQueries.updateUserStatus, { id, status: this.STATUS.INACTIVE });
+    }
+
+    async getContactInfo(id: string) {
+        const info = await pgp.one(userQueries.findOne, { id });
+        return info;
     }
 
 }

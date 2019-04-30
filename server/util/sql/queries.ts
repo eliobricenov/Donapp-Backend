@@ -44,23 +44,60 @@ export const requestStatuses = {
 }
 
 export const types = {
-    DONATION: '72a38da5-0d62-4e17-9c0d-65d68f2b7ff2', 
+    DONATION: '72a38da5-0d62-4e17-9c0d-65d68f2b7ff2',
     EXCHANGE: 'cce85de2-416b-43a1-9e52-5781435fa475'
 }
 
-export const requestQueries = { 
-    fetch: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
-    fetchWithLimit: 'SELECT request_pk as id, title, description, coordinates, created_at, person_fk as "creatorId" FROM request WHERE request_pk < ${id} ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
-    findOne: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE person_fk = ${userId} ',
-    findFromUser: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE person_fk = ${userId} ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
-    createRequest: 'INSERT INTO request (request_pk, person_fk, title, description, coordinates, created_at, request_type_fk) VALUES (${id}, ${userId}, ${title}, ${description}, ${coordinates}, ${createdAt}, ${type})',
+export const requestQueries = {
+    fetch: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE request.finished = false ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY ;',
+    fetchWithLimit: 'SELECT request_pk as id, title, description, coordinates, created_at, person_fk as "creatorId" FROM request WHERE request_pk < ${id} AND request.finished = false ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    findOne: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE person_fk = ${userId} AND finished = false',
+    findFromUser: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE person_fk = ${userId} AND request.finished = false ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    createRequest: 'INSERT INTO request (request_pk, person_fk, title, description, coordinates, created_at, request_type_fk, finished) VALUES (${id}, ${userId}, ${title}, ${description}, ${coordinates}, ${createdAt}, ${type}, false)',
     deleteRequest: 'DELETE FROM person_post_request WHERE pk_post_request = ${id}',
     getImagesFromRequest: 'SELECT url FROM request JOIN request_picture picture on request.request_pk = picture.request_fk WHERE request_pk = ${requestId}',
-    createRequestImage: 'INSERT INTO request_picture (request_picture_pk, request_fk, path, created_at, url) VALUES (${id}, ${requestId}, ${path}, ${createdAt}, ${url})'
-
+    createRequestImage: 'INSERT INTO request_picture (request_picture_pk, request_fk, path, created_at, url) VALUES (${id}, ${requestId}, ${path}, ${createdAt}, ${url})',
+    getFromProposal: 'SELECT request_pk as "id", person_fk as "userId" FROM proposal JOIN request r on proposal.fk_request = r.request_pk JOIN person p on proposal.fk_user = p.person_pk WHERE proposal_pk =${proposalId}',
+    markAsFinished: 'UPDATE request SET finished = true WHERE request_pk = ${requestId}'
 }
 
+export const proposalQueries = {
+    fetch: 'SELECT proposal_pk as id, fk_request as "creatorId", p.description FROM proposal p JOIN request r on p.fk_request = r.request_pk WHERE r.person_fk = ${userId} AND p.finished = false ORDER BY proposal_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    fetchWithLimit: 'SELECT proposal_pk as id, fk_request as "creatorId", p.description FROM proposal p JOIN request r on p.fk_request = r.request_pk WHERE r.person_fk = ${userId} AND proposal_pk < ${id} AND p.finished = false ORDER BY proposal_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    findOne: 'SELECT proposal_pk as id, fk_request as "creatorId", description FROM proposal WHERE proposal_pk = ${id}',
+    findFromUser: 'SELECT proposal_pk as id, fk_request as "creatorId", description FROM proposal FROM request WHERE proposal_pk = ${id} WHERE finished = false',
+    createProposal: 'INSERT INTO proposal (proposal_pk, fk_request, description, fk_user, finished) VALUES (${id}, ${requestId}, ${description}, ${userId}, false)',
+    deleteProposal: 'DELETE FROM proposal WHERE proposal_pk = ${id}',
+    getImagesFromProposal: 'SELECT url FROM proposal JOIN proposal_picture picture on proposal.proposal_pk = picture.proposal_fk WHERE proposal_pk = ${proposalId}',
+    createProposalImage: 'INSERT INTO proposal_picture (proposal_picture_pk, proposal_fk, path, created_at, url) VALUES (${id}, ${proposalId}, ${path}, ${createdAt}, ${url})',
+    getProposalPreview: 'SELECT p.name as "requestOwnerName", r.title, url, r.person_fk as "requestOwner", fk_user as "proposalOwner", p2.name as "proposalOwnerName" FROM proposal JOIN request r on proposal.fk_request = r.request_pk JOIN person p on proposal.fk_user = p.person_pk JOIN person p2 on r.person_fk = p2.person_pk JOIN (SELECT url FROM proposal_picture WHERE proposal_fk = ${proposalId} FETCH FIRST 1 ROW ONLY) AS sq ON 1 = 1 WHERE proposal_pk = ${proposalId};',
+    getProposalPreviewWithoutImage: 'INSERT INTO notification (notification_pk, proposal_fk, message, person_fk) VALUES (${id}, ${proposalId}, ${message}, ${userId})',
+    markAsFinished: 'UPDATE proposal SET finished = true WHERE proposal_pk = ${proposalId}'
+}
 
+export const notificationQueries = {
+    fetch: 'SELECT notification_pk as id, message, is_read as  "isRead", created_at, proposal_fk as "proposalId", nt.name as "type" FROM notification n JOIN notification_type nt on n.notification_type_fk = nt.notification_type_pk WHERE n.person_fk = ${userId} ORDER BY notification_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    fetchWithLimit: 'SELECT notification_pk as id, message, is_read as  "isRead", created_at, proposal_fk as "proposalId", nt.name as "type" FROM notification n JOIN notification_type nt on n.notification_type_fk = nt.notification_type_pk WHERE n.person_fk = ${userId} AND notification_pk < ${id} ORDER BY notification_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    findOne: 'SELECT notification_pk as id, message, is_read as  "isRead", created_at, proposal_fk as "proposalId", nt.name FROM notification n JOIN notification_type nt on n.notification_type_fk = nt.notification_type_pk WHERE n.proposal_pk = ${notificationId}',
+    createNotification: 'INSERT INTO notification (notification_pk, proposal_fk, message, person_fk, is_read, notification_type_fk, created_at) VALUES (${id}, ${proposalId}, ${message}, ${userId}, false, ${notificationType}, ${createdAt})',
+    deleteNotification: 'DELETE FROM notification WHERE notification_pk = ${id}',
+}
 
+export const notificationTypes = {
+    PROPOSAL_RECEIVED: '433b66fa-221f-4bb0-8103-176c6baffd3a',
+    PROPOSAL_ACCEPTED: 'bc76e470-27bf-44dc-bb93-7b1665653bb1',
+    PROPOSAL_REJECTED: '681f6eea-a996-4b08-ab86-fe8ae8712e9e',
+    DONATION_CONFIRMED: '67d5594e-5e6a-429b-80d1-e8bab92f06f7'
+}
 
+export const donationQueries = {
+    createDonation: 'INSERT INTO donation (donation_pk, fk_proposal, person_fk, confirmed) VALUES (${id}, ${proposalId}, ${userId}, false)',
+    getUnconfirmedDonationsWithLimit: 'SELECT d.donation_pk as id, p.proposal_pk as "proposalId" FROM donation d JOIN proposal p ON d.fk_proposal = p.proposal_pk JOIN request r on p.fk_request = r.request_pk WHERE r.person_fk = ${userId} AND d.confirmed = false AND donation_pk < ${id} ORDER BY donation_pk DESC FETCH FIRST ${size} ROWS ONLY',
+    getUnconfirmedDonations: 'SELECT d.donation_pk as id, p.proposal_pk as "proposalId" FROM donation d JOIN proposal p ON d.fk_proposal = p.proposal_pk JOIN request r on p.fk_request = r.request_pk WHERE r.person_fk = ${userId} AND d.confirmed = false ORDER BY donation_pk DESC FETCH FIRST ${size} ROWS ONLY',
+    markAsConfirmed: 'UPDATE donation SET confirmed = true WHERE donation_pk = ${donationId}',
+    getDonationPreview: 'SELECT p1.name as "requestOwnerName", r.title, url, r.person_fk as "requestOwner", fk_user as "proposalOwner", p2.name as "proposalOwnerName" FROM donation JOIN proposal p on donation.fk_proposal = p.proposal_pk JOIN request r on p.fk_request = r.request_pk JOIN person p1 on donation.person_fk = p1.person_pk JOIN person p2 on p.fk_user = p2.person_pk JOIN (SELECT url FROM proposal_picture WHERE proposal_fk = (SELECT proposal_fk FROM donation WHERE donation_pk = ${donationId}) FETCH FIRST 1 ROW ONLY) AS sq ON 1 = 1 WHERE donation_pk = ${donationId}'
+}
 
+export const tradeQueries = {
+    getUnconfirmedTrades: 'SELECT t.trade_pk as "tradeId", p1.name as "requestOwnerName", r.title, r.person_fk as "requestOwner", fk_user as "proposalOwner", p2.name as "proposalOwnerName", fk_proposal as "proposalId" FROM rating JOIN trade t ON rating.trade_fk = t.trade_pk JOIN proposal ON t.fk_proposal = proposal.proposal_pk JOIN request r ON proposal.fk_request = r.request_pk JOIN person p1 on rating.evaluated_user_fk = p1.person_pk JOIN person p2 ON rating.evaluator_user_fk = p2.person_pk WHERE rate IS NULL AND evaluator_user_fk = ${userId}'
+}
