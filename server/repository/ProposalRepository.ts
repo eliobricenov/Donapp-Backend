@@ -13,7 +13,7 @@ import { notificationsTypes } from '../model/Notification';
 export class ProposalRepository {
 
 
-    async fetch(userId: string, size: number = 4, lastItemId?: string) {
+    async fetch(userId: string, size: number = 12, lastItemId?: string) {
         let posts = [];
         if (lastItemId) {
             posts = await pgp.manyOrNone(proposalQueries.fetchWithLimit, { userId, size, id: lastItemId }) || [];

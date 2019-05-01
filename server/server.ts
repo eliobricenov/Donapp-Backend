@@ -17,7 +17,6 @@ class Server {
     }
 
     private setUpMiddlewares(): void {
-        // this.app.use(cors());
         this.app.use(cors({ credentials: true, origin: `http://192.168.1.${4}:8100` || 'http://localhost:8100' || `http://192.168.43.${247}`}));
         // support application/json
         this.app.use(bodyParser.json());

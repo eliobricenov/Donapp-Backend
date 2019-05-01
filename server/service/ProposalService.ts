@@ -43,7 +43,7 @@ export class ProposalService {
         return createdProposal;
     }
 
-    async createExchange(userId: string, data: Proposal, images: Express.Multer.File[]) {
+    async createTrade(userId: string, data: Proposal, images: Express.Multer.File[]) {
         const createdProposal = await this.proposalRepository.createProposal(userId,  data, images);
         return createdProposal;
     }

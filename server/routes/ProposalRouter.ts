@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { DonationRequestRepository } from "../repository/DonationRequestRepository";
-import { ExchangeRequestRepository } from "../repository/ExchangeRequestRepository";
+import { TradeRequestRepository } from "../repository/TradeRequestRepository";
 import { RequestService } from "../service/RequestService";
 import Router from "./Router";
 import { ProposalService } from "../service/ProposalService";

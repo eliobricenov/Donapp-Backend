@@ -2,7 +2,7 @@ import getStatesRoute from "../util/helper/getStates";
 import Router from "./Router";
 import { RequestService } from "../service/RequestService";
 import { DonationRequestRepository } from "../repository/DonationRequestRepository";
-import { ExchangeRequestRepository } from "../repository/ExchangeRequestRepository";
+import { TradeRequestRepository } from "../repository/TradeRequestRepository";
 import { Request, Response } from "express";
 
 /**

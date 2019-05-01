@@ -49,8 +49,8 @@ export const types = {
 }
 
 export const requestQueries = {
-    fetch: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE request.finished = false ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY ;',
-    fetchWithLimit: 'SELECT request_pk as id, title, description, coordinates, created_at, person_fk as "creatorId" FROM request WHERE request_pk < ${id} AND request.finished = false ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
+    fetch: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE request.finished = false AND request_type_fk = ${type} ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY ;',
+    fetchWithLimit: 'SELECT request_pk as id, title, description, coordinates, created_at, person_fk as "creatorId" FROM request WHERE request_pk < ${id} AND request.finished = false AND request_type_fk = ${type} ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
     findOne: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE person_fk = ${userId} AND finished = false',
     findFromUser: 'SELECT request_pk as id, person_fk as "creatorId", title, description, coordinates, created_at FROM request WHERE person_fk = ${userId} AND request.finished = false ORDER BY request_pk DESC FETCH FIRST ${size} ROWS ONLY;',
     createRequest: 'INSERT INTO request (request_pk, person_fk, title, description, coordinates, created_at, request_type_fk, finished) VALUES (${id}, ${userId}, ${title}, ${description}, ${coordinates}, ${createdAt}, ${type}, false)',

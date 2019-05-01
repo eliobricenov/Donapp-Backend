@@ -44,13 +44,9 @@ export class RequestService<T extends RequestRepository> {
         return createdRequest;
     }
 
-    async createExchange(userId: string, data: Post, images: Express.Multer.File[]) {
+    async createTrade(userId: string, data: Post, images: Express.Multer.File[]) {
         data.type = types.EXCHANGE;
         const createdRequest = await this.requestRepository.createRequestPost(userId,  data, images);
         return createdRequest;
-    }
-
-    test() {
-        this.requestRepository.test();
     }
 }

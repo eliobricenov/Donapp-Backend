@@ -1,6 +1,6 @@
 import { RequestRepository } from "./RequestRepository";
 import { types } from "../util/sql/queries";
 
-export class ExchangeRequestRepository extends RequestRepository {
+export class TradeRequestRepository extends RequestRepository {
     type: string = types.EXCHANGE;
 }

@@ -13,7 +13,7 @@ export abstract class RequestRepository {
 
     abstract type: string;
 
-    async fetch(size: number = 4, lastItemId?: string) {
+    async fetch(size: number = 12, lastItemId?: string) {
         let posts = [];
         if (lastItemId) {
             posts = await pgp.manyOrNone(requestQueries.fetchWithLimit, { size, id: lastItemId, type: this.type }) || [];
@@ -57,10 +57,6 @@ export abstract class RequestRepository {
     async setPostImage(post: Post) {
         const images = await pgp.manyOrNone(requestQueries.getImagesFromRequest, { requestId: post.id }) || [];
         post.images = images;
-    }
-
-    test() {
-        console.log(`My code is ${this.type}!`)
     }
 
 

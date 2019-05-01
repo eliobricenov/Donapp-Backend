@@ -14,7 +14,6 @@ export class TradeRepository extends RequestRepository {
             for (const p of previews) {
                 const { proposalId } = p;
                 const { url } = await tx.one(proposalQueries.getProposalPreview, { proposalId });
-                console.log(url);
                 p.image = url;
             }
             return previews;

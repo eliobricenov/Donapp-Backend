@@ -42,7 +42,6 @@ class UserRouter extends Router {
         const { username, password } = req.body;
         try {
             const [token, refreshToken] = await this.userService.doLogin(username, password);
-            console.log(token);
             res.status(200).json({ status: 200, token, refreshToken });
         } catch (error) {
             next(error);
@@ -144,7 +143,6 @@ class UserRouter extends Router {
 
     test = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            console.log(req.body);
             res.json({ status: 200 });
         } catch (error) {
             next(error)

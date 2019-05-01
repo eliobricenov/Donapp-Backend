@@ -14,20 +14,7 @@ export const getToken = async (req: Request, res: Response, next: NextFunction) 
             req.userID = data.id;
             next();
         } catch (error) {
-            console.log(error instanceof ExpiredTokenException);
-            // if (error instanceof ExpiredTokenException) {
-            //     try {
-            //         console.log('Generating new access token through the refresh token');
-            //         const newToken = await JwtTokenService.refreshToken(token, refreshToken);
-            //         req.token = newToken;
-            //     } catch (error) {
-            //         throw(new NotValidTokenException(refreshToken, true));
-            //     }
-            // } else {
-            //     throw error;
-            // }
             try {
-                console.log('Generating new access token through the refresh token');
                 const newToken = await JwtTokenService.refreshToken(token, refreshToken);
                 const { data } = await JwtTokenService.decode(newToken);
                 req.userID = data.id;

@@ -23,7 +23,6 @@ export class MailService {
         try {
             await transporter.sendMail(mailOptions);
         } catch (error) {
-            console.log('email error');
             console.log(error);
             throw new CannotSendEmailException(email);
         }

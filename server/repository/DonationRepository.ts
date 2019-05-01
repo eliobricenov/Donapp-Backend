@@ -8,7 +8,7 @@ import { getNotificationMessage, getCurrentMoment } from "../util/helper/util";
 export class DonationRepository extends RequestRepository {
     type: string = types.DONATION;
 
-    async getUnconfirmedDonations(userId: string, size?: number, lastItemId?: string) {
+    async getUnconfirmedDonations(userId: string, size: number = 12, lastItemId?: string) {
         const donations = await pgp.tx(async tx => {
             let donations = [];
             if (lastItemId) {
@@ -28,7 +28,6 @@ export class DonationRepository extends RequestRepository {
     async createDonation(proposalId: string) {
         const userId = await pgp.tx(async tx => {
             const id = v4();
-            //sea
             const { id: requestId, userId } = await tx.one(requestQueries.getFromProposal, { proposalId })
             //get information of the proposal that was made
             const { proposalOwnerName, title, proposalOwner } = await tx.one(proposalQueries.getProposalPreview, { proposalId });
