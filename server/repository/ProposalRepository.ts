@@ -48,14 +48,14 @@ export class ProposalRepository {
                 return { imageId, url, filename }
             }));
             //get information of the proposal that was made
-            const { requestOwnerName, title, requestOwner } = await tx.one(proposalQueries.getProposalPreview, { proposalId });
+            const { requestOwnerName, title, requestOwner, requestType} = await tx.one(proposalQueries.getProposalPreview, { proposalId });
             //create custom message for notification
-            const notificationType = notificationTypes.PROPOSAL_RECEIVED;
+            const notificationType = notificationTypes.RECEIVED;
             notificationsTypes
-            const message = getNotificationMessage(requestOwnerName, title, notificationType);
+            const message = getNotificationMessage(requestOwnerName, title, notificationType, requestType);
             //save notification
             await await tx.none(notificationQueries.createNotification, { id: v4(), proposalId, message, userId: requestOwner, notificationType, createdAt: getCurrentMoment() })
-            return { id: proposalId, userId, description, createdAt, images: _images };
+            return { id: proposalId, userId, description, createdAt, images: _images, type: requestType };
         });
         return createdProposal;
     }
@@ -63,11 +63,12 @@ export class ProposalRepository {
     async rejectProposal(proposalId: string) {
         await pgp.tx(async tx => {
             //get information of the proposal that was made
-            const { proposalOwnerName, title, proposalOwner } = await tx.one(proposalQueries.getProposalPreview, { proposalId });
+            const { proposalOwnerName, title, proposalOwner, requestType } = await tx.one(proposalQueries.getProposalPreview, { proposalId });
+            const notificationType = notificationTypes.REJECTED;
             //create custom message for notification
-            const message = getNotificationMessage(proposalOwnerName, title, notificationTypes.PROPOSAL_REJECTED);
+            const message = getNotificationMessage(proposalOwnerName, title, notificationType, requestType);
             //save notification
-            await tx.none(notificationQueries.createNotification, { id: v4(), proposalId, message, userId: proposalOwner, notificationType: notificationTypes.PROPOSAL_REJECTED, createdAt: getCurrentMoment() })
+            await tx.none(notificationQueries.createNotification, { id: v4(), proposalId, message, userId: proposalOwner, notificationType, createdAt: getCurrentMoment() })
             //mark proposal as finished
             await tx.none(proposalQueries.markAsFinished, { proposalId })
         })

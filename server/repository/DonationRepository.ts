@@ -39,8 +39,8 @@ export class DonationRepository extends RequestRepository {
             //mark proposal as done
             await tx.none(proposalQueries.markAsFinished, { proposalId });
             //create custom message for notification
-            const notificationType = notificationTypes.PROPOSAL_ACCEPTED;
-            const message = getNotificationMessage(proposalOwnerName, title, notificationType);
+            const notificationType = notificationTypes.ACCEPTED;
+            const message = getNotificationMessage(proposalOwnerName, title, notificationType, this.type);
             //save notification
             await await tx.none(notificationQueries.createNotification, { id: v4(), proposalId, message, userId: proposalOwner, notificationType, createdAt: getCurrentMoment() })
             return userId;
@@ -52,8 +52,8 @@ export class DonationRepository extends RequestRepository {
         await pgp.tx(async tx => {
             const { requestOwnerName, title, proposalOwner, proposalId } = await tx.one(donationQueries.getDonationPreview, { donationId });
             //create custom message for notification
-            const notificationType = notificationTypes.DONATION_CONFIRMED;
-            const message = getNotificationMessage(requestOwnerName, title, notificationType);
+            const notificationType = notificationTypes.CONFIRMED;
+            const message = getNotificationMessage(requestOwnerName, title, notificationType, this.type);
             //save notification
             await await tx.none(notificationQueries.createNotification, { id: v4(), proposalId, message, userId: proposalOwner, notificationType, createdAt: getCurrentMoment() })
             await pgp.none(donationQueries.markAsConfirmed, { donationId });

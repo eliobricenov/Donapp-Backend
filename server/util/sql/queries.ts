@@ -64,13 +64,13 @@ export const requestQueries = {
 export const proposalQueries = {
     fetch: 'SELECT proposal_pk as id, fk_request as "creatorId", p.description FROM proposal p JOIN request r on p.fk_request = r.request_pk WHERE r.person_fk = ${userId} AND p.finished = false ORDER BY proposal_pk DESC FETCH FIRST ${size} ROWS ONLY;',
     fetchWithLimit: 'SELECT proposal_pk as id, fk_request as "creatorId", p.description FROM proposal p JOIN request r on p.fk_request = r.request_pk WHERE r.person_fk = ${userId} AND proposal_pk < ${id} AND p.finished = false ORDER BY proposal_pk DESC FETCH FIRST ${size} ROWS ONLY;',
-    findOne: 'SELECT proposal_pk as id, fk_request as "creatorId", description FROM proposal WHERE proposal_pk = ${id}',
+    findOne: 'SELECT proposal_pk as id, fk_request as "creatorId", p.description, r.request_type_fk as "requestType" FROM proposal p JOIN request r ON p.fk_request = r.request_pk WHERE proposal_pk = ${id}',
     findFromUser: 'SELECT proposal_pk as id, fk_request as "creatorId", description FROM proposal FROM request WHERE proposal_pk = ${id} WHERE finished = false',
     createProposal: 'INSERT INTO proposal (proposal_pk, fk_request, description, fk_user, finished) VALUES (${id}, ${requestId}, ${description}, ${userId}, false)',
     deleteProposal: 'DELETE FROM proposal WHERE proposal_pk = ${id}',
     getImagesFromProposal: 'SELECT url FROM proposal JOIN proposal_picture picture on proposal.proposal_pk = picture.proposal_fk WHERE proposal_pk = ${proposalId}',
     createProposalImage: 'INSERT INTO proposal_picture (proposal_picture_pk, proposal_fk, path, created_at, url) VALUES (${id}, ${proposalId}, ${path}, ${createdAt}, ${url})',
-    getProposalPreview: 'SELECT p.name as "requestOwnerName", r.title, url, r.person_fk as "requestOwner", fk_user as "proposalOwner", p2.name as "proposalOwnerName" FROM proposal JOIN request r on proposal.fk_request = r.request_pk JOIN person p on proposal.fk_user = p.person_pk JOIN person p2 on r.person_fk = p2.person_pk JOIN (SELECT url FROM proposal_picture WHERE proposal_fk = ${proposalId} FETCH FIRST 1 ROW ONLY) AS sq ON 1 = 1 WHERE proposal_pk = ${proposalId};',
+    getProposalPreview: 'SELECT p.name as "requestOwnerName", r.title, r.request_type_fk as "requestType", url, r.person_fk as "requestOwner", fk_user as "proposalOwner", p2.name as "proposalOwnerName" FROM proposal JOIN request r on proposal.fk_request = r.request_pk JOIN person p on proposal.fk_user = p.person_pk JOIN person p2 on r.person_fk = p2.person_pk JOIN (SELECT url FROM proposal_picture WHERE proposal_fk = ${proposalId} FETCH FIRST 1 ROW ONLY) AS sq ON 1 = 1 WHERE proposal_pk = ${proposalId};',
     getProposalPreviewWithoutImage: 'INSERT INTO notification (notification_pk, proposal_fk, message, person_fk) VALUES (${id}, ${proposalId}, ${message}, ${userId})',
     markAsFinished: 'UPDATE proposal SET finished = true WHERE proposal_pk = ${proposalId}'
 }
@@ -84,10 +84,11 @@ export const notificationQueries = {
 }
 
 export const notificationTypes = {
-    PROPOSAL_RECEIVED: '433b66fa-221f-4bb0-8103-176c6baffd3a',
-    PROPOSAL_ACCEPTED: 'bc76e470-27bf-44dc-bb93-7b1665653bb1',
-    PROPOSAL_REJECTED: '681f6eea-a996-4b08-ab86-fe8ae8712e9e',
-    DONATION_CONFIRMED: '67d5594e-5e6a-429b-80d1-e8bab92f06f7'
+    RECEIVED: '433b66fa-221f-4bb0-8103-176c6baffd3a',
+    ACCEPTED: 'bc76e470-27bf-44dc-bb93-7b1665653bb1',
+    REJECTED: '681f6eea-a996-4b08-ab86-fe8ae8712e9e',
+    CONFIRMED: '67d5594e-5e6a-429b-80d1-e8bab92f06f7',
+    RATED: '99376142-5ace-4d46-ad8b-1090767c13ad'
 }
 
 export const donationQueries = {
@@ -99,5 +100,17 @@ export const donationQueries = {
 }
 
 export const tradeQueries = {
-    getUnconfirmedTrades: 'SELECT t.trade_pk as "tradeId", p1.name as "requestOwnerName", r.title, r.person_fk as "requestOwner", fk_user as "proposalOwner", p2.name as "proposalOwnerName", fk_proposal as "proposalId" FROM rating JOIN trade t ON rating.trade_fk = t.trade_pk JOIN proposal ON t.fk_proposal = proposal.proposal_pk JOIN request r ON proposal.fk_request = r.request_pk JOIN person p1 on rating.evaluated_user_fk = p1.person_pk JOIN person p2 ON rating.evaluator_user_fk = p2.person_pk WHERE rate IS NULL AND evaluator_user_fk = ${userId}'
+    getUnconfirmedTrades: 'SELECT t.trade_pk as "tradeId", p1.name as "requestOwnerName", r.title, r.person_fk as "requestOwner", fk_user as "proposalOwner", p2.name as "proposalOwnerName", fk_proposal as "proposalId" FROM rating JOIN trade t ON rating.trade_fk = t.trade_pk JOIN proposal ON t.fk_proposal = proposal.proposal_pk JOIN request r ON proposal.fk_request = r.request_pk JOIN person p1 on rating.evaluated_user_fk = p1.person_pk JOIN person p2 ON rating.evaluator_user_fk = p2.person_pk WHERE rate IS NULL AND evaluator_user_fk = ${userId}',
+    createTrade: 'INSERT INTO trade (trade_pk, fk_proposal) VALUES (${id}, $(proposalId))',
+    getTradePreview: 'SELECT proposal_pk as "proposalId", r.title as "requestName", person.name as "evaluatorName", evaluated_user_fk as "evaluatedUser" FROM rating JOIN trade t on rating.trade_fk = t.trade_pk JOIN person ON rating.evaluator_user_fk = person.person_pk JOIN proposal p on t.fk_proposal = p.proposal_pk JOIN request r on p.fk_request = r.request_pk WHERE trade_pk = ${tradeId} AND evaluator_user_fk = ${userId}'
+}
+
+export const ratingQueries = {
+    createRating: 'INSERT INTO rating (trade_fk, evaluator_user_fk, evaluated_user_fk, rate) VALUES (${id}, ${evaluatorId}, ${evaluatedId}, ${rating})',
+    updateRating: 'UPDATE rating SET rate = ${rate} WHERE evaluator_user_fk = ${userId} AND trade_fk = ${tradeId}'
+}
+
+export const requestTypes = {
+    TRADE: 'cce85de2-416b-43a1-9e52-5781435fa475',
+    DONATION: '72a38da5-0d62-4e17-9c0d-65d68f2b7ff2'
 }

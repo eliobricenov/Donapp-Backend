@@ -4,4 +4,5 @@ export interface Proposal {
     description: string;
     images?: string[];
     preview?: any;
+    type?: string;
 }
